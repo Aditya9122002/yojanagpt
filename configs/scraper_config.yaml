@@ -1,0 +1,115 @@
+# ── YojanaGPT Scraper Configuration ──────────────────────────────
+# This file controls scraper behaviour, API endpoints, and output settings.
+
+api:
+  # Base URL for myscheme.gov.in hidden JSON API
+  base_url: "https://www.myscheme.gov.in/api/v1/scheme"
+
+  # Endpoint to list all schemes (paginated)
+  # Query params: lang, from (offset), size (page size)
+  list_endpoint: "/schemes"
+
+  # Endpoint pattern for individual scheme detail
+  # Usage: append /{slug} to this
+  detail_endpoint: "/scheme"
+
+  # Default language for API requests
+  default_language: "en"
+
+  # Supported language codes (myscheme.gov.in built-in support)
+  supported_languages:
+    - "en"   # English
+    - "hi"   # Hindi
+    - "or"   # Odia
+    - "as"   # Assamese
+    - "bn"   # Bengali
+    - "gu"   # Gujarati
+    - "kn"   # Kannada
+    - "ml"   # Malayalam
+    - "mr"   # Marathi
+    - "pa"   # Punjabi
+    - "ta"   # Tamil
+    - "te"   # Telugu
+    - "ur"   # Urdu
+    - "ks"   # Kashmiri
+    - "mai"  # Maithili
+
+  # Pagination settings
+  pagination:
+    page_size: 10           # API returns max 10 schemes per request
+    total_schemes: 4676     # Known total as of discovery
+    start_offset: 0         # Always start from 0
+
+scraper:
+  # Seconds to wait between consecutive API calls
+  # Keeps us from hammering the government server
+  request_delay_seconds: 1.0
+
+  # Extra delay (seconds) between full page fetches
+  page_delay_seconds: 2.0
+
+  # Max retries for a failed HTTP request
+  max_retries: 3
+
+  # Seconds to wait before each retry (exponential backoff applied on top)
+  retry_wait_seconds: 2.0
+
+  # HTTP request timeout in seconds
+  request_timeout_seconds: 30
+
+  # Test mode: fetch only this many schemes total (for development)
+  test_mode_limit: 20
+
+  # User agent string sent with every HTTP request
+  user_agent: "YojanaGPT-Scraper/1.0 (open source public good project)"
+
+output:
+  # Base directory for raw scraped data (relative to project root)
+  raw_dir: "data/raw"
+
+  # Base directory for processed data
+  processed_dir: "data/processed"
+
+  # File format for scraped output
+  format: "jsonl"   # One JSON object per line — efficient for large datasets
+
+  # Output filename for full scheme list
+  schemes_list_file: "schemes_list.jsonl"
+
+  # Output filename for detailed scheme data
+  schemes_detail_file: "schemes_detail.jsonl"
+
+  # How many schemes to write per checkpoint save
+  # Saves progress so a crash doesn't lose everything
+  checkpoint_every: 100
+
+logging:
+  # Log file location (relative to project root)
+  log_file: "logs/scraper.log"
+
+  # Log format
+  format: "%(asctime)s | %(levelname)s | %(name)s | %(message)s"
+
+  # Date format in logs
+  date_format: "%Y-%m-%d %H:%M:%S"
+
+  # Rotate log file when it reaches this size (in bytes) — 5MB
+  max_bytes: 5242880
+
+  # Keep this many backup log files
+  backup_count: 3
+
+# Fields we want to extract from the list API response per scheme
+# These come directly from the API's JSON keys
+list_api_fields:
+  - "id"
+  - "slug"
+  - "schemeName"
+  - "schemeShortTitle"
+  - "briefDescription"
+  - "tags"
+  - "level"
+  - "nodalMinistryName"
+  - "schemeCategory"
+  - "beneficiaryState"
+  - "schemeCloseDate"

@@ -1,0 +1,30 @@
+@"
+# Environment variables — contains API keys
+.env
+
+# Virtual environment
+.venv/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Large data files — too big for GitHub
+data/raw/
+data/chromadb/
+
+# Logs
+logs/
+
+# Debug scripts
+debug_api.py
+debug_search.py
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+docker_data.vhdx
+"@ | Out-File -FilePath .gitignore -Encoding utf8

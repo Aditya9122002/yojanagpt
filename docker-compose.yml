@@ -1,0 +1,52 @@
+# docker-compose.yml — runs YojanaGPT API
+#
+# Usage:
+#   Start:   docker-compose up
+#   Stop:    docker-compose down
+#   Rebuild: docker-compose up --build
+#
+# What this does:
+#   - Builds the Docker image from Dockerfile
+#   - Mounts data/chromadb from your machine into the container
+#     (so the container uses your real ChromaDB data)
+#   - Passes environment variables from your .env file
+#   - Maps port 8000 on your machine to port 8000 in container
+
+version: "3.9"
+
+services:
+  yojanagpt:
+    # Build from the Dockerfile in current directory
+    build: .
+
+    # Container name
+    container_name: yojanagpt-api
+
+    # Map port 8000 on host → port 8000 in container
+    # Format: "host_port:container_port"
+    ports:
+      - "8000:8000"
+
+    # Mount data directories from host into container
+    # This means ChromaDB data lives on your machine, not inside the container
+    # If you rebuild the container, your data is safe
+    volumes:
+      - ./data/chromadb:/app/data/chromadb
+      - ./data/raw:/app/data/raw
+      - ./logs:/app/logs
+
+    # Load environment variables from .env file
+    # GROQ_API_KEY and other secrets stay in .env, not in this file
+    env_file:
+      - .env
+
+    # Restart policy — restart if container crashes
+    restart: unless-stopped
+
+    # Health check — Docker will monitor if the API is responding
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s

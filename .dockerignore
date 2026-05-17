@@ -1,0 +1,49 @@
+# .dockerignore — files NOT copied into the Docker image
+#
+# Like .gitignore but for Docker builds.
+# Excluding these makes the build faster and the image smaller.
+
+# Python virtual environment — Docker installs its own packages
+.venv/
+venv/
+
+# Python cache files — generated at runtime
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# ChromaDB data — mounted as a volume at runtime, not baked into image
+data/chromadb/
+
+# Raw scraped data — not needed to run the API
+data/raw/
+
+# Logs — generated at runtime
+logs/
+
+# Development files
+debug_api.py
+debug_search.py
+*.log
+
+# Git
+.git/
+.gitignore
+
+# Environment file — passed via docker-compose, not baked into image
+.env
+
+# Tests
+tests/
+pytest.ini
+conftest.py
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
