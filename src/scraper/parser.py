@@ -259,7 +259,10 @@ def parse_scheme_detail(
         # ── Tags ──────────────────────────────────────────────────
         # tags is a plain list of strings in basicDetails
         tags_raw = basic.get("tags", [])
-        tags = [str(t).strip() for t in tags_raw if t] if tags_raw else []
+        if isinstance(tags_raw, str):
+            tags = [tags_raw.strip()] if tags_raw.strip() else []
+        else:
+            tags = [str(t).strip() for t in tags_raw if t] if tags_raw else []
 
         # ── Source URL ────────────────────────────────────────────
         source_url = f"https://www.myscheme.gov.in/schemes/{scheme_id}"

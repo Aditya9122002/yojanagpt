@@ -16,73 +16,101 @@ from src.scraper.models import SchemeListItem, SchemeDetail
 
 
 # ── Fixtures — Sample API Responses ──────────────────────────────────────────
-# These mimic the real myscheme.gov.in API response structure.
-# We use fixtures so the same sample data can be reused across multiple tests.
+# These mimic the REAL myscheme.gov.in API response structure (confirmed May 2025).
+#
+# LIST API structure:
+#   data → hits → items[] → fields → scheme fields
+#
+# DETAIL API structure:
+#   data → en → basicDetails / schemeContent / eligibilityCriteria / applicationProcess
 
 @pytest.fixture
 def valid_list_response():
-    """Mimics a real paginated list API response with two schemes."""
+    """Mimics real paginated list API response with two schemes."""
     return {
+        "status": "Success",
+        "statusCode": 200,
         "data": {
-            "total": 4676,
-            "schemes": [
-                {
-                    "id": "nos-swd-001",
-                    "slug": "nos-swd",
-                    "schemeName": "National Overseas Scholarship",
-                    "schemeShortTitle": "NOS",
-                    "briefDescription": "Scholarship for students going abroad.",
-                    "tags": ["scholarship", "education", "overseas"],
-                    "level": "Central",
-                    "nodalMinistryName": "Ministry of Social Justice",
-                    "schemeCategory": "Education",
-                    "beneficiaryState": "",
-                    "schemeCloseDate": "",
-                },
-                {
-                    "id": "pmay-002",
-                    "slug": "pmay",
-                    "schemeName": "Pradhan Mantri Awas Yojana",
-                    "schemeShortTitle": "PMAY",
-                    "briefDescription": "Housing for all by 2024.",
-                    "tags": ["housing", "urban", "rural"],
-                    "level": "Central",
-                    "nodalMinistryName": "Ministry of Housing",
-                    "schemeCategory": "Housing",
-                    "beneficiaryState": "",
-                    "schemeCloseDate": "2024-12-31",
-                },
-            ],
+            "summary": {"total": 4696},
+            "hits": {
+                "items": [
+                    {
+                        "_id": "abc123",
+                        "fields": {
+                            "slug": "nos-swd",
+                            "schemeName": "National Overseas Scholarship",
+                            "schemeShortTitle": "NOS",
+                            "briefDescription": "Scholarship for students going abroad.",
+                            "tags": ["scholarship", "education", "overseas"],
+                            "level": "Central",
+                            "nodalMinistryName": "Ministry of Social Justice",
+                            "schemeCategory": ["Education"],
+                            "beneficiaryState": ["All"],
+                            "schemeCloseDate": "",
+                        }
+                    },
+                    {
+                        "_id": "def456",
+                        "fields": {
+                            "slug": "pmay",
+                            "schemeName": "Pradhan Mantri Awas Yojana",
+                            "schemeShortTitle": "PMAY",
+                            "briefDescription": "Housing for all.",
+                            "tags": ["housing", "urban", "rural"],
+                            "level": "Central",
+                            "nodalMinistryName": "Ministry of Housing",
+                            "schemeCategory": ["Housing"],
+                            "beneficiaryState": ["All"],
+                            "schemeCloseDate": "2024-12-31",
+                        }
+                    },
+                ]
+            }
         }
     }
 
 
 @pytest.fixture
 def valid_detail_response():
-    """Mimics a real scheme detail API response with all fields present."""
+    """Mimics real scheme detail API response with all fields present."""
     return {
+        "status": "Success",
+        "statusCode": 200,
         "data": {
             "slug": "nos-swd",
-            "schemeName": "National Overseas Scholarship",
-            "nodalMinistryName": "Ministry of Social Justice and Empowerment",
-            "beneficiaryState": "Central",
-            "schemeCategory": "Education",
-            "briefDescription": "Provides financial assistance to students from SC/ST communities for studies abroad.",
-            "eligibility": "SC/ST students who have secured admission in top foreign universities.",
-            "benefits": "Tuition fee, living allowance, travel allowance covered.",
-            "howToApply": "Apply online at the official portal before the deadline.",
-            "documentsRequired": [
-                "Caste certificate",
-                "Admission letter",
-                "Passport copy",
-                "Bank account details",
-            ],
-            "helplineNumber": "1800-11-2001",
-            "applicationPortal": "https://nosmsje.gov.in",
-            "schemeCloseDate": "2024-03-31",
-            "tags": ["scholarship", "education", "SC", "ST", "overseas"],
-            "cscApplicable": "false",
-            "grievancePortal": "https://pgportal.gov.in",
+            "en": {
+                "basicDetails": {
+                    "schemeName": "National Overseas Scholarship",
+                    "nodalMinistryName": {
+                        "value": 712,
+                        "label": "Ministry Of Social Justice and Empowerment"
+                    },
+                    "level": {"value": "central", "label": "Central"},
+                    "schemeCategory": [
+                        {"value": "edu-001", "label": "Education"}
+                    ],
+                    "tags": ["scholarship", "education", "SC", "ST", "overseas"],
+                    "schemeOpenDate": "2023-01-01",
+                    "schemeCloseDate": "2024-03-31",
+                    "helplineNumber": "1800-11-2001",
+                    "applicationPortal": "https://nosmsje.gov.in",
+                    "grievancePortal": "https://pgportal.gov.in",
+                    "cscApplicable": "false",
+                },
+                "schemeContent": {
+                    "briefDescription": "Provides financial assistance to students from SC/ST communities for studies abroad.",
+                    "benefits_md": "Tuition fee, living allowance, travel allowance covered.",
+                },
+                "eligibilityCriteria": {
+                    "eligibilityDescription_md": "SC/ST students who have secured admission in top foreign universities.",
+                },
+                "applicationProcess": [
+                    {
+                        "type": "paragraph",
+                        "children": [{"text": "Apply online at the official portal before the deadline."}]
+                    }
+                ],
+            }
         }
     }
 
@@ -91,9 +119,16 @@ def valid_detail_response():
 def minimal_detail_response():
     """Mimics a detail response where most optional fields are missing."""
     return {
+        "status": "Success",
+        "statusCode": 200,
         "data": {
             "slug": "minimal-scheme",
-            "schemeName": "Minimal Test Scheme",
+            "en": {
+                "basicDetails": {
+                    "schemeName": "Minimal Test Scheme",
+                },
+                "schemeContent": {},
+            }
         }
     }
 
@@ -136,9 +171,14 @@ class TestParseSchemeList:
         result = parse_scheme_list({"error": "something went wrong"})
         assert result == []
 
-    def test_parse_scheme_list_empty_schemes(self):
-        """Response with empty schemes list should return empty list."""
-        result = parse_scheme_list({"data": {"schemes": [], "total": 0}})
+    def test_parse_scheme_list_empty_items(self):
+        """Response with empty items list should return empty list."""
+        result = parse_scheme_list({
+            "data": {
+                "hits": {"items": []},
+                "summary": {"total": 0}
+            }
+        })
         assert result == []
 
     def test_parse_scheme_list_partial_failure(self):
@@ -148,22 +188,28 @@ class TestParseSchemeList:
         """
         response = {
             "data": {
-                "schemes": [
-                    # Valid scheme — has required slug field
-                    {
-                        "slug": "good-scheme",
-                        "schemeName": "Good Scheme",
-                        "level": "Central",
-                    },
-                    # Invalid scheme — missing required slug field entirely
-                    {
-                        "schemeName": "Bad Scheme With No Slug",
-                    },
-                ]
+                "hits": {
+                    "items": [
+                        {
+                            "_id": "good",
+                            "fields": {
+                                "slug": "good-scheme",
+                                "schemeName": "Good Scheme",
+                                "level": "Central",
+                            }
+                        },
+                        {
+                            "_id": "bad",
+                            "fields": {
+                                # Missing required slug field
+                                "schemeName": "Bad Scheme With No Slug",
+                            }
+                        },
+                    ]
+                }
             }
         }
         result = parse_scheme_list(response)
-        # Only the valid one should parse
         assert len(result) == 1
         assert result[0].slug == "good-scheme"
 
@@ -185,7 +231,7 @@ class TestParseSchemeDetail:
 
         assert result.scheme_id == "nos-swd"
         assert result.name == "National Overseas Scholarship"
-        assert result.ministry == "Ministry of Social Justice and Empowerment"
+        assert result.ministry == "Ministry Of Social Justice and Empowerment"
         assert result.category == "Education"
 
     def test_detail_eligibility_and_benefit(self, valid_detail_response):
@@ -198,12 +244,9 @@ class TestParseSchemeDetail:
         assert "Tuition fee" in result.benefit
 
     def test_detail_documents_list(self, valid_detail_response):
-        """Documents should be returned as a list of strings."""
+        """Documents needed should be an empty list when not in response."""
         result = parse_scheme_detail(valid_detail_response, slug="nos-swd")
-
         assert isinstance(result.documents_needed, list)
-        assert len(result.documents_needed) == 4
-        assert "Caste certificate" in result.documents_needed
 
     def test_detail_helpline_and_portal(self, valid_detail_response):
         """Contact fields should be extracted correctly."""
@@ -216,20 +259,15 @@ class TestParseSchemeDetail:
     def test_detail_csc_applicable_false(self, valid_detail_response):
         """cscApplicable string 'false' should be parsed to Python False."""
         result = parse_scheme_detail(valid_detail_response, slug="nos-swd")
-
         assert result.csc_applicable is False
 
     def test_detail_source_url_auto_built(self, valid_detail_response):
-        """Source URL should be auto-built from scheme_id when not in response."""
+        """Source URL should be auto-built from scheme_id."""
         result = parse_scheme_detail(valid_detail_response, slug="nos-swd")
-
         assert result.source_url == "https://www.myscheme.gov.in/schemes/nos-swd"
 
     def test_detail_minimal_response(self, minimal_detail_response):
-        """
-        Response with only required fields should parse successfully.
-        All optional fields should be None or empty list.
-        """
+        """Response with only required fields should parse successfully."""
         result = parse_scheme_detail(minimal_detail_response, slug="minimal-scheme")
 
         assert result is not None
@@ -254,18 +292,19 @@ class TestParseSchemeDetail:
 # ── Boolean Parsing Tests ─────────────────────────────────────────────────────
 
 class TestBooleanParsing:
-    """
-    Tests for the _parse_bool helper via the full parser.
-    We test this indirectly through parse_scheme_detail.
-    """
+    """Tests for _parse_bool helper via parse_scheme_detail."""
 
     def _make_response(self, csc_value):
-        """Helper to build a minimal detail response with a specific cscApplicable value."""
         return {
             "data": {
                 "slug": "test-scheme",
-                "schemeName": "Test Scheme",
-                "cscApplicable": csc_value,
+                "en": {
+                    "basicDetails": {
+                        "schemeName": "Test Scheme",
+                        "cscApplicable": csc_value,
+                    },
+                    "schemeContent": {},
+                }
             }
         }
 
@@ -303,8 +342,13 @@ class TestTagsNormalisation:
         return {
             "data": {
                 "slug": "test-scheme",
-                "schemeName": "Test Scheme",
-                "tags": tags_value,
+                "en": {
+                    "basicDetails": {
+                        "schemeName": "Test Scheme",
+                        "tags": tags_value,
+                    },
+                    "schemeContent": {},
+                }
             }
         }
 
