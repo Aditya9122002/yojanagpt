@@ -1,796 +1,1124 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>YojanaGPT — सरकारी योजनाएं, आपकी भाषा में</title>
-  <link href="https://fonts.googleapis.com/css2?family=Tiro+Devanagari+Hindi:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
-  <style>
-    :root {
-      --saffron: #FF6B00;
-      --saffron-light: #FF8C3A;
-      --saffron-glow: rgba(255, 107, 0, 0.15);
-      --green: #138808;
-      --green-light: #1aad09;
-      --navy: #000080;
-      --bg: #0A0A0F;
-      --bg-card: #13131A;
-      --bg-input: #1C1C26;
-      --border: rgba(255,255,255,0.08);
-      --border-accent: rgba(255, 107, 0, 0.3);
-      --text: #F0F0F0;
-      --text-dim: #888;
-      --text-dimmer: #555;
-      --user-bubble: #FF6B00;
-      --bot-bubble: #1C1C26;
-      --radius: 18px;
-      --radius-sm: 10px;
-    }
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>YojanaGPT — सरकारी योजनाएँ · आपकी भाषा में</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@300;400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+<style>
+/* ── Tokens ──────────────────────────────────────────────────── */
+:root {
+  --bg:         #0a0a0a;
+  --bg2:        #111111;
+  --bg3:        #1a1a1a;
+  --bg4:        #222222;
+  --border:     #2a2a2a;
+  --border2:    #333333;
+  --saffron:    #FF6B35;
+  --saffron-dk: #e05a28;
+  --saffron-gl: rgba(255,107,53,0.12);
+  --white:      #f5f5f5;
+  --muted:      #888888;
+  --muted2:     #555555;
+  --green:      #22c55e;
+  --navy:       #4169E1;
+  --radius:     16px;
+  --radius-sm:  10px;
+  --shadow:     0 8px 32px rgba(0,0,0,0.4);
+  --t:          0.2s ease;
+}
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    body {
-      font-family: 'DM Sans', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      height: 100dvh;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
+html, body {
+  height: 100%;
+  font-family: 'Noto Sans', 'Noto Sans Devanagari', sans-serif;
+  background: var(--bg);
+  color: var(--white);
+  overflow: hidden;
+}
 
-    /* ── Animated background ── */
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background:
-        radial-gradient(ellipse 60% 40% at 10% 0%, rgba(255,107,0,0.07) 0%, transparent 60%),
-        radial-gradient(ellipse 40% 30% at 90% 100%, rgba(19,136,8,0.05) 0%, transparent 60%),
-        radial-gradient(ellipse 50% 50% at 50% 50%, rgba(0,0,128,0.04) 0%, transparent 70%);
-      pointer-events: none;
-      z-index: 0;
-    }
+/* ── Layout ──────────────────────────────────────────────────── */
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  max-width: 900px;
+  margin: 0 auto;
+}
 
-    /* ── Header ── */
-    header {
-      position: relative;
-      z-index: 10;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 14px 20px;
-      border-bottom: 1px solid var(--border);
-      background: rgba(10,10,15,0.9);
-      backdrop-filter: blur(20px);
-      flex-shrink: 0;
-    }
+/* ── Top bar ─────────────────────────────────────────────────── */
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+  flex-shrink: 0;
+  position: relative;
+  z-index: 10;
+}
 
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
+.logo-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
 
-    .logo-icon {
-      width: 36px;
-      height: 36px;
-      background: linear-gradient(135deg, var(--saffron), #FF8C3A);
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
-      box-shadow: 0 0 20px rgba(255,107,0,0.4);
-      flex-shrink: 0;
-    }
+.logo-icon {
+  width: 38px;
+  height: 38px;
+  background: var(--saffron);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
 
-    .logo-text h1 {
-      font-size: 17px;
-      font-weight: 600;
-      color: #fff;
-      letter-spacing: -0.3px;
-      line-height: 1.1;
-    }
+.logo-text { line-height: 1.15; }
+.logo-text h1 { font-size: 1.1rem; font-weight: 700; letter-spacing: -0.01em; }
+.logo-text span {
+  font-size: 0.70rem;
+  color: var(--muted);
+  font-family: 'Noto Sans Devanagari', sans-serif;
+}
 
-    .logo-text p {
-      font-size: 11px;
-      color: var(--text-dim);
-      font-weight: 300;
-    }
+/* status dot */
+.status-bar {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.72rem;
+  color: var(--green);
+  font-family: 'Space Mono', monospace;
+}
+.status-dot {
+  width: 7px; height: 7px;
+  background: var(--green);
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0%,100% { opacity: 1; }
+  50%      { opacity: 0.4; }
+}
 
-    .tricolor-bar {
-      width: 3px;
-      height: 32px;
-      border-radius: 3px;
-      background: linear-gradient(to bottom, #FF6B00 33%, #fff 33%, #fff 66%, #138808 66%);
-      flex-shrink: 0;
-    }
+/* right side of topbar */
+.topbar-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
 
-    /* ── Language selector ── */
-    .lang-select {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
+.chunks-badge {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.68rem;
+  color: var(--muted);
+}
 
-    .lang-select label {
-      font-size: 12px;
-      color: var(--text-dim);
-    }
+/* language selector */
+.lang-select-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  padding: 5px 10px;
+  font-size: 0.75rem;
+  color: var(--muted);
+  cursor: pointer;
+  transition: border-color var(--t);
+}
+.lang-select-wrap:hover { border-color: var(--saffron); color: var(--white); }
+.lang-select-wrap span { font-weight: 600; color: var(--white); }
 
-    select {
-      background: var(--bg-input);
-      border: 1px solid var(--border);
-      color: var(--text);
-      padding: 6px 10px;
-      border-radius: 8px;
-      font-size: 13px;
-      font-family: inherit;
-      cursor: pointer;
-      outline: none;
-      transition: border-color 0.2s;
-    }
+/* ── Mode bar ─────────────────────────────────────────────────── */
+.modebar {
+  display: flex;
+  gap: 6px;
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+  overflow-x: auto;
+  flex-shrink: 0;
+  scrollbar-width: none;
+}
+.modebar::-webkit-scrollbar { display: none; }
 
-    select:focus {
-      border-color: var(--saffron);
-    }
+.mode-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border: 1px solid var(--border2);
+  border-radius: 100px;
+  background: var(--bg3);
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--t);
+  font-family: 'Noto Sans', sans-serif;
+}
+.mode-btn:hover { border-color: var(--saffron); color: var(--white); }
+.mode-btn.active {
+  background: var(--saffron);
+  border-color: var(--saffron);
+  color: var(--white);
+  font-weight: 600;
+}
+.mode-btn .mi { font-size: 0.9rem; }
 
-    /* ── Status bar ── */
-    .status-bar {
-      position: relative;
-      z-index: 10;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 6px 20px;
-      background: rgba(19,136,8,0.08);
-      border-bottom: 1px solid rgba(19,136,8,0.15);
-      flex-shrink: 0;
-    }
+/* ── Chat area ───────────────────────────────────────────────── */
+.chat-area {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border2) transparent;
+}
+.chat-area::-webkit-scrollbar { width: 4px; }
+.chat-area::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
 
-    .status-dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: var(--green-light);
-      box-shadow: 0 0 8px var(--green-light);
-      animation: pulse 2s infinite;
-    }
+/* Welcome screen */
+.welcome {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  min-height: 300px;
+  text-align: center;
+  padding: 20px;
+}
 
-    .status-dot.offline {
-      background: #ff4444;
-      box-shadow: 0 0 8px #ff4444;
-      animation: none;
-    }
+.welcome-icon {
+  width: 64px; height: 64px;
+  background: var(--saffron-gl);
+  border: 1px solid var(--saffron);
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+}
 
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.4; }
-    }
+.welcome h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
 
-    .status-text {
-      font-size: 11px;
-      color: var(--text-dim);
-    }
+.welcome h2 span { color: var(--saffron); }
 
-    .status-count {
-      margin-left: auto;
-      font-size: 11px;
-      color: var(--text-dimmer);
-    }
+.welcome p {
+  font-size: 0.88rem;
+  color: var(--muted);
+  max-width: 440px;
+  line-height: 1.6;
+  font-family: 'Noto Sans Devanagari', sans-serif;
+}
 
-    /* ── Chat area ── */
-    #chat {
-      position: relative;
-      z-index: 1;
-      flex: 1;
-      overflow-y: auto;
-      padding: 20px 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      scroll-behavior: smooth;
-    }
+/* Tricolor divider */
+.tricolor {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.tricolor span {
+  height: 3px;
+  width: 32px;
+  border-radius: 2px;
+}
 
-    #chat::-webkit-scrollbar { width: 4px; }
-    #chat::-webkit-scrollbar-track { background: transparent; }
-    #chat::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+/* Quick suggestion chips */
+.suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  max-width: 560px;
+}
 
-    /* ── Welcome screen ── */
-    .welcome {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      flex: 1;
-      gap: 24px;
-      padding: 20px;
-      text-align: center;
-      animation: fadeIn 0.6s ease;
-    }
+.sug-chip {
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: 100px;
+  padding: 8px 16px;
+  font-size: 0.80rem;
+  color: var(--white);
+  cursor: pointer;
+  transition: all var(--t);
+  font-family: 'Noto Sans', 'Noto Sans Devanagari', sans-serif;
+}
+.sug-chip:hover { background: var(--saffron-gl); border-color: var(--saffron); color: var(--saffron); }
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
+/* ── Eligibility form (shown inside chat area) ──────────────── */
+.elig-form-card {
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  padding: 20px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
 
-    .welcome-icon {
-      font-size: 48px;
-      filter: drop-shadow(0 0 20px rgba(255,107,0,0.5));
-    }
+.elig-form-card h3 {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--saffron);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
 
-    .welcome h2 {
-      font-family: 'Tiro Devanagari Hindi', serif;
-      font-size: 22px;
-      color: #fff;
-      line-height: 1.4;
-    }
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
 
-    .welcome p {
-      font-size: 14px;
-      color: var(--text-dim);
-      max-width: 320px;
-      line-height: 1.6;
-    }
+.form-field { display: flex; flex-direction: column; gap: 4px; }
 
-    .suggestions {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      width: 100%;
-      max-width: 400px;
-    }
+.form-field label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
 
-    .suggestion-btn {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      color: var(--text);
-      padding: 10px 14px;
-      border-radius: var(--radius-sm);
-      font-size: 13px;
-      font-family: inherit;
-      cursor: pointer;
-      text-align: left;
-      transition: all 0.2s;
-      line-height: 1.4;
-    }
+.form-field input {
+  background: var(--bg4);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  padding: 9px 12px;
+  color: var(--white);
+  font-size: 0.85rem;
+  font-family: 'Noto Sans', sans-serif;
+  transition: border-color var(--t);
+  width: 100%;
+}
+.form-field input:focus { outline: none; border-color: var(--saffron); }
+.form-field input::placeholder { color: var(--muted2); }
 
-    .suggestion-btn:hover {
-      border-color: var(--saffron);
-      background: var(--saffron-glow);
-      color: #fff;
-    }
+/* ── Compare chips ──────────────────────────────────────────── */
+.compare-tags-card {
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
 
-    /* ── Messages ── */
-    .message {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      animation: slideIn 0.3s ease;
-      max-width: 88%;
-    }
+.compare-tags-card h3 {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--saffron);
+}
 
-    @keyframes slideIn {
-      from { opacity: 0; transform: translateY(8px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
+.tags-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  min-height: 40px;
+}
 
-    .message.user {
-      align-self: flex-end;
-      align-items: flex-end;
-    }
+.scheme-tag {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--saffron-gl);
+  border: 1px solid var(--saffron);
+  border-radius: 100px;
+  padding: 5px 12px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--saffron);
+}
 
-    .message.bot {
-      align-self: flex-start;
-      align-items: flex-start;
-    }
+.scheme-tag button {
+  background: none;
+  border: none;
+  color: var(--saffron);
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0;
+  opacity: 0.7;
+  transition: opacity var(--t);
+}
+.scheme-tag button:hover { opacity: 1; }
 
-    .bubble {
-      padding: 12px 16px;
-      border-radius: var(--radius);
-      font-size: 14px;
-      line-height: 1.6;
-    }
+.tag-input {
+  background: none;
+  border: none;
+  outline: none;
+  color: var(--white);
+  font-size: 0.85rem;
+  font-family: 'Noto Sans', sans-serif;
+  min-width: 160px;
+}
+.tag-input::placeholder { color: var(--muted2); }
 
-    .message.user .bubble {
-      background: var(--saffron);
-      color: #fff;
-      border-bottom-right-radius: 4px;
-    }
+.compare-presets { display: flex; flex-wrap: wrap; gap: 7px; }
 
-    .message.bot .bubble {
-      background: var(--bot-bubble);
-      border: 1px solid var(--border);
-      color: var(--text);
-      border-bottom-left-radius: 4px;
-    }
+.preset-btn {
+  background: var(--bg4);
+  border: 1px solid var(--border2);
+  border-radius: 100px;
+  padding: 5px 12px;
+  font-size: 0.75rem;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all var(--t);
+  font-family: 'Noto Sans', sans-serif;
+}
+.preset-btn:hover { border-color: var(--saffron); color: var(--saffron); }
 
-    .message-meta {
-      font-size: 11px;
-      color: var(--text-dimmer);
-      padding: 0 4px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
+/* ── Messages ───────────────────────────────────────────────── */
+.msg-row {
+  display: flex;
+  gap: 12px;
+  animation: msgIn 0.25s ease;
+}
+@keyframes msgIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
 
-    .lang-badge {
-      background: rgba(255,107,0,0.15);
-      color: var(--saffron);
-      padding: 1px 6px;
-      border-radius: 4px;
-      font-size: 10px;
-      font-weight: 500;
-    }
+/* User message — right aligned */
+.msg-row.user { flex-direction: row-reverse; }
 
-    /* ── Sources ── */
-    .sources {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      margin-top: 4px;
-    }
+.msg-avatar {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
 
-    .sources-label {
-      font-size: 11px;
-      color: var(--text-dimmer);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
+.msg-avatar.bot {
+  background: var(--saffron);
+}
 
-    .source-card {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      background: rgba(255,107,0,0.06);
-      border: 1px solid var(--border-accent);
-      border-radius: var(--radius-sm);
-      padding: 8px 12px;
-      text-decoration: none;
-      color: var(--text);
-      transition: all 0.2s;
-    }
+.msg-avatar.user-av {
+  background: var(--bg4);
+  border: 1px solid var(--border2);
+}
 
-    .source-card:hover {
-      background: rgba(255,107,0,0.12);
-      border-color: var(--saffron);
-    }
+.msg-bubble {
+  max-width: 72%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
 
-    .source-icon {
-      font-size: 16px;
-      flex-shrink: 0;
-    }
+.msg-row.user .msg-bubble { align-items: flex-end; }
 
-    .source-info {
-      flex: 1;
-      min-width: 0;
-    }
+.bubble-text {
+  padding: 13px 16px;
+  border-radius: 18px;
+  font-size: 0.90rem;
+  line-height: 1.65;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
 
-    .source-name {
-      font-size: 12px;
-      font-weight: 500;
-      color: var(--saffron-light);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
+/* bot bubble */
+.msg-row.bot .bubble-text {
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-top-left-radius: 4px;
+  color: var(--white);
+}
 
-    .source-url {
-      font-size: 10px;
-      color: var(--text-dimmer);
-    }
+/* user bubble */
+.msg-row.user .bubble-text {
+  background: var(--saffron);
+  color: var(--white);
+  border-top-right-radius: 4px;
+}
 
-    .source-arrow {
-      font-size: 12px;
-      color: var(--text-dimmer);
-      flex-shrink: 0;
-    }
+.msg-time {
+  font-size: 0.66rem;
+  color: var(--muted2);
+  font-family: 'Space Mono', monospace;
+  padding: 0 4px;
+}
 
-    /* ── Typing indicator ── */
-    .typing {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      padding: 14px 16px;
-      background: var(--bot-bubble);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      border-bottom-left-radius: 4px;
-      width: fit-content;
-    }
+/* sources strip */
+.sources-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  padding: 2px 0;
+}
 
-    .typing span {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: var(--text-dim);
-      animation: bounce 1.2s infinite;
-    }
+.sources-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted2);
+}
 
-    .typing span:nth-child(2) { animation-delay: 0.2s; }
-    .typing span:nth-child(3) { animation-delay: 0.4s; }
+.src-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--bg4);
+  border: 1px solid var(--border2);
+  border-radius: 100px;
+  padding: 3px 10px;
+  font-size: 0.70rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-decoration: none;
+  transition: all var(--t);
+}
+.src-chip:hover { border-color: var(--saffron); color: var(--saffron); }
 
-    @keyframes bounce {
-      0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
-      30% { transform: translateY(-6px); opacity: 1; }
-    }
+/* ── Typing indicator ───────────────────────────────────────── */
+.typing-indicator {
+  display: none;
+  gap: 12px;
+  align-items: center;
+}
+.typing-indicator.visible { display: flex; }
 
-    /* ── Error message ── */
-    .error-bubble {
-      background: rgba(255,68,68,0.1);
-      border: 1px solid rgba(255,68,68,0.3);
-      color: #ff9999;
-      padding: 10px 14px;
-      border-radius: var(--radius-sm);
-      font-size: 13px;
-    }
+.typing-bubble {
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: 18px;
+  border-top-left-radius: 4px;
+  padding: 13px 16px;
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
 
-    /* ── Input area ── */
-    .input-area {
-      position: relative;
-      z-index: 10;
-      padding: 12px 16px 16px;
-      border-top: 1px solid var(--border);
-      background: rgba(10,10,15,0.95);
-      backdrop-filter: blur(20px);
-      flex-shrink: 0;
-    }
+.typing-bubble span {
+  width: 7px; height: 7px;
+  background: var(--muted);
+  border-radius: 50%;
+  animation: typingBounce 1.2s infinite;
+}
+.typing-bubble span:nth-child(2) { animation-delay: 0.2s; }
+.typing-bubble span:nth-child(3) { animation-delay: 0.4s; }
 
-    .input-row {
-      display: flex;
-      gap: 10px;
-      align-items: flex-end;
-      background: var(--bg-input);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 10px 14px;
-      transition: border-color 0.2s;
-    }
+@keyframes typingBounce {
+  0%,60%,100% { transform: translateY(0); opacity: 0.4; }
+  30%          { transform: translateY(-5px); opacity: 1; }
+}
 
-    .input-row:focus-within {
-      border-color: var(--saffron);
-      box-shadow: 0 0 0 3px rgba(255,107,0,0.08);
-    }
+.typing-label {
+  font-size: 0.75rem;
+  color: var(--muted);
+  font-family: 'Space Mono', monospace;
+}
 
-    textarea {
-      flex: 1;
-      background: transparent;
-      border: none;
-      outline: none;
-      color: var(--text);
-      font-size: 15px;
-      font-family: inherit;
-      resize: none;
-      line-height: 1.5;
-      max-height: 120px;
-      min-height: 24px;
-    }
+/* ── Bottom input area ──────────────────────────────────────── */
+.input-area {
+  border-top: 1px solid var(--border);
+  background: var(--bg);
+  padding: 14px 20px 18px;
+  flex-shrink: 0;
+}
 
-    textarea::placeholder { color: var(--text-dimmer); }
+.input-box {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  transition: border-color var(--t), box-shadow var(--t);
+}
+.input-box:focus-within {
+  border-color: var(--saffron);
+  box-shadow: 0 0 0 3px rgba(255,107,53,0.10);
+}
 
-    .send-btn {
-      width: 36px;
-      height: 36px;
-      border-radius: 10px;
-      background: var(--saffron);
-      border: none;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      transition: all 0.2s;
-      color: white;
-    }
+.input-box textarea {
+  flex: 1;
+  background: none;
+  border: none;
+  outline: none;
+  color: var(--white);
+  font-size: 0.92rem;
+  font-family: 'Noto Sans', 'Noto Sans Devanagari', sans-serif;
+  resize: none;
+  max-height: 120px;
+  min-height: 24px;
+  line-height: 1.5;
+}
+.input-box textarea::placeholder { color: var(--muted2); }
 
-    .send-btn:hover:not(:disabled) {
-      background: var(--saffron-light);
-      transform: scale(1.05);
-    }
+.send-btn {
+  width: 38px; height: 38px;
+  background: var(--saffron);
+  border: none;
+  border-radius: 10px;
+  color: var(--white);
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background var(--t), transform var(--t);
+}
+.send-btn:hover { background: var(--saffron-dk); transform: scale(1.05); }
+.send-btn:active { transform: scale(0.97); }
+.send-btn:disabled { background: var(--bg4); cursor: not-allowed; transform: none; }
 
-    .send-btn:disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
-      transform: none;
-    }
+.input-hint {
+  margin-top: 8px;
+  font-size: 0.68rem;
+  color: var(--muted2);
+  text-align: center;
+  font-family: 'Space Mono', monospace;
+}
 
-    .input-hint {
-      font-size: 11px;
-      color: var(--text-dimmer);
-      text-align: center;
-      margin-top: 8px;
-    }
+/* ── Error toast ────────────────────────────────────────────── */
+.error-toast {
+  display: none;
+  background: #2d1515;
+  border: 1px solid #7f2020;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 0.82rem;
+  color: #ff6b6b;
+  margin-bottom: 8px;
+}
+.error-toast.visible { display: block; }
 
-    /* ── Responsive ── */
-    @media (max-width: 480px) {
-      header { padding: 12px 14px; }
-      .logo-text p { display: none; }
-      #chat { padding: 14px 12px; }
-      .message { max-width: 95%; }
-      .input-area { padding: 10px 12px 14px; }
-    }
-  </style>
+/* ── Scrollbar stripe at top ────────────────────────────────── */
+.top-stripe {
+  height: 3px;
+  background: linear-gradient(90deg, #FF6B35 33.3%, #f5f5f5 33.3%, #f5f5f5 66.6%, #138808 66.6%);
+  flex-shrink: 0;
+}
+
+/* ── Responsive ─────────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .topbar { padding: 10px 14px; }
+  .chat-area { padding: 16px 14px; }
+  .input-area { padding: 10px 14px 14px; }
+  .form-grid { grid-template-columns: 1fr; }
+  .msg-bubble { max-width: 86%; }
+  .chunks-badge { display: none; }
+  .modebar { padding: 8px 14px; }
+}
+</style>
 </head>
 <body>
+<div class="app">
 
-<!-- Header -->
-<header>
-  <div class="logo">
-    <div class="logo-icon">🏛️</div>
-    <div class="logo-text">
-      <h1>YojanaGPT</h1>
-      <p>सरकारी योजनाएं · आपकी भाषा में</p>
+  <!-- Tricolor stripe -->
+  <div class="top-stripe"></div>
+
+  <!-- ── Top bar ──────────────────────────────────────────────── -->
+  <div class="topbar">
+    <div class="logo-wrap">
+      <div class="logo-icon">🏛️</div>
+      <div class="logo-text">
+        <h1>YojanaGPT</h1>
+        <span>सरकारी योजनाएँ · आपकी भाषा में</span>
+      </div>
+    </div>
+
+    <div class="status-bar" style="margin-left:16px;">
+      <div class="status-dot"></div>
+      <span>Ready</span>
+    </div>
+
+    <div class="topbar-right">
+      <div class="chunks-badge">22,467 scheme chunks loaded</div>
+      <div class="lang-select-wrap" title="Language auto-detected from your question">
+        भाषा &nbsp;<span>Auto detect ▾</span>
+      </div>
     </div>
   </div>
-  <div class="tricolor-bar"></div>
-  <div class="lang-select">
-    <label>भाषा</label>
-    <select id="langSelect">
-      <option value="">Auto detect</option>
-      <option value="hi">हिंदी</option>
-      <option value="ta">தமிழ்</option>
-      <option value="te">తెలుగు</option>
-      <option value="bn">বাংলা</option>
-      <option value="mr">मराठी</option>
-      <option value="gu">ગુજરાતી</option>
-      <option value="kn">ಕನ್ನಡ</option>
-      <option value="ml">മലയാളം</option>
-      <option value="pa">ਪੰਜਾਬੀ</option>
-      <option value="en">English</option>
-    </select>
-  </div>
-</header>
 
-<!-- Status bar -->
-<div class="status-bar">
-  <div class="status-dot" id="statusDot"></div>
-  <span class="status-text" id="statusText">Connecting to YojanaGPT...</span>
-  <span class="status-count" id="statusCount"></span>
-</div>
-
-<!-- Chat area -->
-<div id="chat">
-  <div class="welcome" id="welcome">
-    <div class="welcome-icon">🇮🇳</div>
-    <h2>नमस्ते! मैं YojanaGPT हूं</h2>
-    <p>Ask me about any Indian government scheme in your language. I'll answer in the same language.</p>
-    <div class="suggestions">
-      <button class="suggestion-btn" onclick="sendSuggestion(this.textContent)">
-        PM Kisan ke liye kaun eligible hai?
-      </button>
-      <button class="suggestion-btn" onclick="sendSuggestion(this.textContent)">
-        What documents are needed for NOS-SWD scholarship?
-      </button>
-      <button class="suggestion-btn" onclick="sendSuggestion(this.textContent)">
-        Divyang students ke liye koi scholarship hai?
-      </button>
-      <button class="suggestion-btn" onclick="sendSuggestion(this.textContent)">
-        PM கிசான் திட்டத்திற்கு யார் தகுதியானவர்கள்?
-      </button>
-    </div>
-  </div>
-</div>
-
-<!-- Input -->
-<div class="input-area">
-  <div class="input-row">
-    <textarea
-      id="input"
-      placeholder="अपना सवाल यहाँ लिखें... / Ask your question..."
-      rows="1"
-      onkeydown="handleKey(event)"
-      oninput="autoResize(this)"
-    ></textarea>
-    <button class="send-btn" id="sendBtn" onclick="sendMessage()" title="Send">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <line x1="22" y1="2" x2="11" y2="13"></line>
-        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-      </svg>
+  <!-- ── Mode bar ─────────────────────────────────────────────── -->
+  <div class="modebar">
+    <button class="mode-btn active" data-mode="ask" onclick="setMode('ask')">
+      <span class="mi">💬</span> Ask / पूछें
+    </button>
+    <button class="mode-btn" data-mode="eligibility" onclick="setMode('eligibility')">
+      <span class="mi">✅</span> Eligibility / पात्रता
+    </button>
+    <button class="mode-btn" data-mode="documents" onclick="setMode('documents')">
+      <span class="mi">📋</span> Documents / दस्तावेज़
+    </button>
+    <button class="mode-btn" data-mode="apply" onclick="setMode('apply')">
+      <span class="mi">📝</span> How to Apply / आवेदन
+    </button>
+    <button class="mode-btn" data-mode="compare" onclick="setMode('compare')">
+      <span class="mi">⚖️</span> Compare / तुलना
+    </button>
+    <button class="mode-btn" data-mode="contact" onclick="setMode('contact')">
+      <span class="mi">📞</span> Helpline / हेल्पलाइन
     </button>
   </div>
-  <p class="input-hint">Press Enter to send · Shift+Enter for new line · 4,600+ schemes available</p>
-</div>
 
-<script>
-  const API = 'http://localhost:8000';
-  let isLoading = false;
+  <!-- ── Chat area ─────────────────────────────────────────────── -->
+  <div class="chat-area" id="chatArea">
 
-  // ── Health check on load ──
-  async function checkHealth() {
-    try {
-      const res = await fetch(`${API}/health`);
-      const data = await res.json();
-      document.getElementById('statusDot').classList.remove('offline');
-      document.getElementById('statusText').textContent = 'YojanaGPT is ready';
-      document.getElementById('statusCount').textContent = `${data.chunks_in_db.toLocaleString()} scheme chunks loaded`;
-    } catch {
-      document.getElementById('statusDot').classList.add('offline');
-      document.getElementById('statusText').textContent = 'API offline — start uvicorn on port 8000';
-      document.getElementById('statusCount').textContent = '';
-    }
-  }
+    <!-- Welcome screen (hidden once chat starts) -->
+    <div class="welcome" id="welcomeScreen">
+      <div class="welcome-icon">🏛️</div>
+      <div class="tricolor">
+        <span style="background:#FF6B35"></span>
+        <span style="background:#f5f5f5"></span>
+        <span style="background:#138808"></span>
+      </div>
+      <h2>नमस्ते! <span>YojanaGPT</span> में आपका स्वागत है</h2>
+      <p>
+        किसी भी सरकारी योजना के बारे में किसी भी भाषा में पूछें।<br/>
+        Ask about any government scheme in any Indian language.
+      </p>
+      <div class="suggestions" id="suggestionChips">
+        <div class="sug-chip" onclick="useSuggestion('PM Kisan ke liye kaun eligible hai?')">PM Kisan पात्रता</div>
+        <div class="sug-chip" onclick="useSuggestion('What is Ayushman Bharat scheme?')">Ayushman Bharat</div>
+        <div class="sug-chip" onclick="useSuggestion('PM Awas Yojana kya hai?')">PM Awas Yojana</div>
+        <div class="sug-chip" onclick="useSuggestion('Sukanya Samriddhi Yojana ke kya fayde hain?')">Sukanya Samriddhi</div>
+        <div class="sug-chip" onclick="useSuggestion('PMFBY fasal bima kaise milti hai?')">PMFBY बीमा</div>
+        <div class="sug-chip" onclick="useSuggestion('Mudra loan ke liye kaise apply karein?')">Mudra Loan</div>
+      </div>
+    </div>
 
-  checkHealth();
-
-  // ── Auto resize textarea ──
-  function autoResize(el) {
-    el.style.height = 'auto';
-    el.style.height = Math.min(el.scrollHeight, 120) + 'px';
-  }
-
-  // ── Handle Enter key ──
-  function handleKey(e) {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
-    }
-  }
-
-  // ── Suggestion buttons ──
-  function sendSuggestion(text) {
-    document.getElementById('input').value = text;
-    sendMessage();
-  }
-
-  // ── Send message ──
-  async function sendMessage() {
-    const input = document.getElementById('input');
-    const question = input.value.trim();
-    if (!question || isLoading) return;
-
-    // Hide welcome screen
-    const welcome = document.getElementById('welcome');
-    if (welcome) welcome.remove();
-
-    // Add user message
-    addMessage('user', question);
-    input.value = '';
-    input.style.height = 'auto';
-
-    // Show typing indicator
-    const typingId = addTyping();
-    setLoading(true);
-
-    try {
-      const res = await fetch(`${API}/ask`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question, top_k: 5 })
-      });
-
-      if (!res.ok) throw new Error(`API error: ${res.status}`);
-      const data = await res.json();
-
-      removeTyping(typingId);
-      addBotMessage(data);
-
-    } catch (err) {
-      removeTyping(typingId);
-      addError('Could not reach YojanaGPT API. Make sure uvicorn is running on port 8000.');
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  // ── Add user message ──
-  function addMessage(role, text) {
-    const chat = document.getElementById('chat');
-    const div = document.createElement('div');
-    div.className = `message ${role}`;
-    div.innerHTML = `
-      <div class="bubble">${escapeHtml(text)}</div>
-      <div class="message-meta">${formatTime()}</div>
-    `;
-    chat.appendChild(div);
-    scrollToBottom();
-    return div;
-  }
-
-  // ── Add bot message with sources ──
-  function addBotMessage(data) {
-    const chat = document.getElementById('chat');
-    const div = document.createElement('div');
-    div.className = 'message bot';
-
-    const langBadge = data.detected_language !== 'en'
-      ? `<span class="lang-badge">${data.language_name}</span>`
-      : '';
-
-    let sourcesHtml = '';
-    if (data.sources && data.sources.length > 0) {
-      const cards = data.sources.map(s => `
-        <a class="source-card" href="${s.source_url}" target="_blank" rel="noopener">
-          <span class="source-icon">📋</span>
-          <div class="source-info">
-            <div class="source-name">${escapeHtml(s.scheme_name)}</div>
-            <div class="source-url">myscheme.gov.in</div>
-          </div>
-          <span class="source-arrow">↗</span>
-        </a>
-      `).join('');
-
-      sourcesHtml = `
-        <div class="sources">
-          <div class="sources-label">Sources</div>
-          ${cards}
+    <!-- Eligibility form card (shown when mode=eligibility, before asking) -->
+    <div class="elig-form-card" id="eligFormCard" style="display:none;">
+      <h3>✅ अपनी जानकारी भरें · Fill Your Profile</h3>
+      <div class="form-grid">
+        <div class="form-field">
+          <label>आयु / Age</label>
+          <input type="text" id="ef-age" placeholder="e.g. 35"/>
         </div>
-      `;
-    }
+        <div class="form-field">
+          <label>लिंग / Gender</label>
+          <input type="text" id="ef-gender" placeholder="Male / Female / अन्य"/>
+        </div>
+        <div class="form-field">
+          <label>राज्य / State</label>
+          <input type="text" id="ef-state" placeholder="e.g. Maharashtra"/>
+        </div>
+        <div class="form-field">
+          <label>जाति / Caste</label>
+          <input type="text" id="ef-caste" placeholder="General / OBC / SC / ST"/>
+        </div>
+        <div class="form-field">
+          <label>वार्षिक आय / Income ₹</label>
+          <input type="text" id="ef-income" placeholder="e.g. 120000"/>
+        </div>
+        <div class="form-field">
+          <label>पेशा / Occupation</label>
+          <input type="text" id="ef-occupation" placeholder="Farmer / Student / Labour"/>
+        </div>
+        <div class="form-field">
+          <label>विकलांगता / Disability</label>
+          <input type="text" id="ef-disability" placeholder="Yes / No"/>
+        </div>
+        <div class="form-field">
+          <label>BPL कार्ड / BPL Card</label>
+          <input type="text" id="ef-bpl" placeholder="Yes / No"/>
+        </div>
+      </div>
+      <p style="font-size:0.74rem;color:var(--muted);">
+        🔒 आपका डेटा संग्रहीत नहीं किया जाता · Your data is never stored
+      </p>
+    </div>
 
-    div.innerHTML = `
-      <div class="bubble">${formatAnswer(data.answer)}</div>
-      <div class="message-meta">${formatTime()} ${langBadge}</div>
-      ${sourcesHtml}
-    `;
+    <!-- Compare form card -->
+    <div class="compare-tags-card" id="compareCard" style="display:none;">
+      <h3>⚖️ योजनाएँ चुनें · Select Schemes to Compare</h3>
+      <div class="tags-row" id="tagsRow" onclick="document.getElementById('tagInput').focus()">
+        <input type="text" class="tag-input" id="tagInput"
+          placeholder="Scheme name + Enter (min 2)…"
+          onkeydown="handleTagInput(event)"/>
+      </div>
+      <div class="compare-presets">
+        <button class="preset-btn" onclick="setPreset(['PM Kisan','PMFBY'],'Compare PM Kisan and PMFBY')">PM Kisan vs PMFBY</button>
+        <button class="preset-btn" onclick="setPreset(['PM Awas Gramin','PM Awas Urban'],'Compare rural and urban housing schemes')">Rural vs Urban Housing</button>
+        <button class="preset-btn" onclick="setPreset(['Sukanya Samriddhi','Beti Bachao Beti Padhao'],'Compare Sukanya Samriddhi and Beti Bachao')">Girl child schemes</button>
+      </div>
+    </div>
 
-    chat.appendChild(div);
-    scrollToBottom();
-  }
-
-  // ── Add error ──
-  function addError(msg) {
-    const chat = document.getElementById('chat');
-    const div = document.createElement('div');
-    div.className = 'message bot';
-    div.innerHTML = `<div class="error-bubble">⚠️ ${escapeHtml(msg)}</div>`;
-    chat.appendChild(div);
-    scrollToBottom();
-  }
-
-  // ── Typing indicator ──
-  function addTyping() {
-    const chat = document.getElementById('chat');
-    const id = 'typing-' + Date.now();
-    const div = document.createElement('div');
-    div.className = 'message bot';
-    div.id = id;
-    div.innerHTML = `
-      <div class="typing">
+    <!-- Typing indicator -->
+    <div class="msg-row bot typing-indicator" id="typingIndicator">
+      <div class="msg-avatar bot">🏛️</div>
+      <div class="typing-bubble">
         <span></span><span></span><span></span>
       </div>
-    `;
-    chat.appendChild(div);
-    scrollToBottom();
-    return id;
+      <div class="typing-label" id="typingLabel">Searching schemes…</div>
+    </div>
+
+  </div>
+
+  <!-- ── Error toast ──────────────────────────────────────────── -->
+  <div class="error-toast" id="errorToast"></div>
+
+  <!-- ── Input area ───────────────────────────────────────────── -->
+  <div class="input-area">
+    <div class="input-box">
+      <textarea
+        id="questionInput"
+        rows="1"
+        placeholder="अपना सवाल यहाँ लिखें… / Ask your question…"
+        onkeydown="handleKey(event)"
+        oninput="autoResize(this)"
+      ></textarea>
+      <button class="send-btn" id="sendBtn" onclick="handleSend()" title="Send (Enter)">
+        ➤
+      </button>
+    </div>
+    <div class="input-hint">Press Enter to send · Shift+Enter for new line · 4,600+ schemes available</div>
+  </div>
+
+</div><!-- .app -->
+
+<script>
+const API = 'http://localhost:8000';
+
+let currentMode = 'ask';
+let schemeNames  = [];
+
+// ── Mode switching ──────────────────────────────────────────────
+const modeConfig = {
+  ask:         { placeholder: 'अपना सवाल यहाँ लिखें… / Ask your question…',               typing: 'Searching schemes…'             },
+  eligibility: { placeholder: 'कौन सी योजना जाँचनी है? / Which scheme to check?',          typing: 'Checking eligibility…'          },
+  documents:   { placeholder: 'किस योजना के दस्तावेज़? / Documents for which scheme?',      typing: 'Extracting document list…'      },
+  apply:       { placeholder: 'कैसे आवेदन करें? / How to apply for which scheme?',         typing: 'Building application guide…'    },
+  compare:     { placeholder: 'तुलना के बारे में कुछ और लिखें… / Add comparison note…',    typing: 'Comparing schemes…'             },
+  contact:     { placeholder: 'किस योजना की हेल्पलाइन? / Helpline for which scheme?',      typing: 'Looking up contact details…'    },
+};
+
+function setMode(mode) {
+  currentMode = mode;
+
+  // update tab buttons
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector(`[data-mode="${mode}"]`).classList.add('active');
+
+  // show/hide special form cards
+  document.getElementById('eligFormCard').style.display   = mode === 'eligibility' ? 'flex' : 'none';
+  document.getElementById('compareCard').style.display    = mode === 'compare'     ? 'flex' : 'none';
+
+  // update placeholder
+  document.getElementById('questionInput').placeholder = modeConfig[mode].placeholder;
+
+  // update typing label
+  document.getElementById('typingLabel').textContent = modeConfig[mode].typing;
+
+  // update suggestion chips
+  updateSuggestions(mode);
+
+  document.getElementById('questionInput').focus();
+}
+
+function updateSuggestions(mode) {
+  const chips = {
+    ask: [
+      ['PM Kisan ke liye kaun eligible hai?',           'PM Kisan पात्रता'],
+      ['What is Ayushman Bharat?',                       'Ayushman Bharat'],
+      ['PM Awas Yojana kya hai?',                        'PM Awas Yojana'],
+      ['Sukanya Samriddhi ke fayde kya hain?',           'Sukanya Samriddhi'],
+    ],
+    eligibility: [
+      ['Am I eligible for any farmer scheme?',           'Farmer schemes'],
+      ['Kisan hoon, kaunsi schemes milegi?',             'किसान योजनाएँ'],
+      ['What housing schemes can I get?',                'Housing schemes'],
+      ['Beti ke liye koi scheme hai?',                   'बेटी के लिए'],
+    ],
+    documents: [
+      ['Documents for PM Kisan?',                        'PM Kisan docs'],
+      ['Ayushman Bharat ke liye kya chahiye?',           'Ayushman docs'],
+      ['What documents for PM Awas Yojana?',             'PM Awas docs'],
+      ['Mudra loan documents list?',                     'Mudra Loan'],
+    ],
+    apply: [
+      ['How to apply for PM Kisan online?',              'PM Kisan apply'],
+      ['PM Awas Yojana mein apply kaise karein?',        'PM Awas apply'],
+      ['How do I register for Ayushman Bharat?',         'Ayushman register'],
+      ['Steps to get Mudra loan?',                       'Mudra steps'],
+    ],
+    compare: [
+      ['Compare PM Kisan and PMFBY',                     'PM Kisan vs PMFBY'],
+      ['Rural vs Urban PM Awas difference?',             'Awas comparison'],
+    ],
+    contact: [
+      ['PM Kisan helpline number kya hai?',              'PM Kisan helpline'],
+      ['Ayushman Bharat ka toll free number?',           'Ayushman helpline'],
+      ['PMFBY grievance portal?',                        'PMFBY contact'],
+    ],
+  };
+
+  const el = document.getElementById('suggestionChips');
+  if (!el) return;
+  el.innerHTML = (chips[mode] || []).map(([q, label]) =>
+    `<div class="sug-chip" onclick="useSuggestion('${q.replace(/'/g,"\\'")}')">` +
+    `${label}</div>`
+  ).join('');
+}
+
+function useSuggestion(text) {
+  document.getElementById('questionInput').value = text;
+  autoResize(document.getElementById('questionInput'));
+  handleSend();
+}
+
+// ── Auto-resize textarea ────────────────────────────────────────
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+// ── Key handler ─────────────────────────────────────────────────
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    handleSend();
+  }
+}
+
+// ── Main send ───────────────────────────────────────────────────
+async function handleSend() {
+  const input = document.getElementById('questionInput');
+  const question = input.value.trim();
+  if (!question && currentMode !== 'compare') return;
+
+  hideError();
+  hideWelcome();
+
+  // Build display question (for user bubble)
+  let displayQuestion = question;
+  if (currentMode === 'compare' && schemeNames.length >= 2) {
+    displayQuestion = question || `Compare: ${schemeNames.join(' vs ')}`;
+  }
+  if (!displayQuestion) return;
+
+  addUserMessage(displayQuestion);
+  input.value = '';
+  input.style.height = 'auto';
+  showTyping();
+  scrollDown();
+
+  try {
+    let data;
+    switch (currentMode) {
+      case 'ask':
+        data = await callAPI('/ask', { question, top_k: 5 });
+        break;
+
+      case 'eligibility':
+        const profile = getProfile();
+        data = await callAPI('/eligibility', { question, profile, top_k: 5 });
+        break;
+
+      case 'documents':
+        data = await callAPI('/documents', { question, top_k: 5 });
+        break;
+
+      case 'apply':
+        data = await callAPI('/apply', { question, top_k: 5 });
+        break;
+
+      case 'compare':
+        if (schemeNames.length < 2) {
+          showError('कम से कम 2 योजनाएँ चुनें · Add at least 2 scheme names to compare');
+          hideTyping();
+          return;
+        }
+        const cq = question || `Compare ${schemeNames.join(' and ')}`;
+        data = await callAPI('/compare', { question: cq, scheme_names: schemeNames, top_k: 5 });
+        break;
+
+      case 'contact':
+        data = await callAPI('/contact', { question, top_k: 5 });
+        break;
+    }
+    hideTyping();
+    addBotMessage(data);
+  } catch (err) {
+    hideTyping();
+    showError(err.message);
   }
 
-  function removeTyping(id) {
-    const el = document.getElementById(id);
-    if (el) el.remove();
+  scrollDown();
+}
+
+// ── API call ────────────────────────────────────────────────────
+async function callAPI(endpoint, body) {
+  const resp = await fetch(API + endpoint, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  if (!resp.ok) {
+    const err = await resp.json().catch(() => ({}));
+    throw new Error(err.detail || `HTTP ${resp.status}`);
+  }
+  return resp.json();
+}
+
+// ── Profile collector ───────────────────────────────────────────
+function getProfile() {
+  const fields = ['age','gender','state','caste','income','occupation','disability','bpl'];
+  const profile = {};
+  fields.forEach(f => {
+    const v = document.getElementById('ef-' + f)?.value?.trim();
+    if (v) profile[f] = v;
+  });
+  return profile;
+}
+
+// ── Compare tags ────────────────────────────────────────────────
+function handleTagInput(e) {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    const val = e.target.value.trim();
+    if (val && !schemeNames.includes(val)) {
+      schemeNames.push(val);
+      renderTags();
+    }
+    e.target.value = '';
+  }
+}
+
+function renderTags() {
+  const row = document.getElementById('tagsRow');
+  const input = document.getElementById('tagInput');
+  row.querySelectorAll('.scheme-tag').forEach(t => t.remove());
+  schemeNames.forEach((name, i) => {
+    const tag = document.createElement('span');
+    tag.className = 'scheme-tag';
+    tag.innerHTML = `${name} <button onclick="removeTag(${i})">×</button>`;
+    row.insertBefore(tag, input);
+  });
+}
+
+function removeTag(i) {
+  schemeNames.splice(i, 1);
+  renderTags();
+}
+
+function setPreset(names, question) {
+  schemeNames = [...names];
+  renderTags();
+  document.getElementById('questionInput').value = question;
+  autoResize(document.getElementById('questionInput'));
+}
+
+// ── DOM helpers ─────────────────────────────────────────────────
+function hideWelcome() {
+  const w = document.getElementById('welcomeScreen');
+  if (w) w.style.display = 'none';
+}
+
+function showTyping() {
+  document.getElementById('typingIndicator').classList.add('visible');
+}
+
+function hideTyping() {
+  document.getElementById('typingIndicator').classList.remove('visible');
+}
+
+function scrollDown() {
+  const ca = document.getElementById('chatArea');
+  setTimeout(() => { ca.scrollTop = ca.scrollHeight; }, 60);
+}
+
+function showError(msg) {
+  const el = document.getElementById('errorToast');
+  el.textContent = '⚠️ ' + msg;
+  el.classList.add('visible');
+}
+
+function hideError() {
+  document.getElementById('errorToast').classList.remove('visible');
+}
+
+function now() {
+  return new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+}
+
+// ── Add messages ─────────────────────────────────────────────────
+function addUserMessage(text) {
+  const ca = document.getElementById('chatArea');
+  const ti = document.getElementById('typingIndicator');
+
+  const row = document.createElement('div');
+  row.className = 'msg-row user';
+  row.innerHTML = `
+    <div class="msg-avatar user-av">👤</div>
+    <div class="msg-bubble">
+      <div class="bubble-text">${escHtml(text)}</div>
+      <div class="msg-time">${now()}</div>
+    </div>`;
+  ca.insertBefore(row, ti);
+}
+
+function addBotMessage(data) {
+  const ca = document.getElementById('chatArea');
+  const ti = document.getElementById('typingIndicator');
+
+  const langLabel = data.language_name || data.detected_language || '';
+
+  // Sources HTML
+  let srcHtml = '';
+  if (data.sources && data.sources.length > 0) {
+    const chips = data.sources.map(s =>
+      `<a class="src-chip" href="${s.source_url || '#'}" target="_blank">📄 ${escHtml(s.scheme_name)}</a>`
+    ).join('');
+    srcHtml = `<div class="sources-strip"><span class="sources-label">Sources</span>${chips}</div>`;
   }
 
-  // ── Helpers ──
-  function setLoading(val) {
-    isLoading = val;
-    document.getElementById('sendBtn').disabled = val;
-    document.getElementById('input').disabled = val;
-  }
+  const langBadge = langLabel
+    ? `<span style="font-size:.68rem;color:var(--muted);font-family:'Space Mono',monospace;margin-left:6px;">${langLabel.toUpperCase()}</span>`
+    : '';
 
-  function scrollToBottom() {
-    const chat = document.getElementById('chat');
-    chat.scrollTop = chat.scrollHeight;
-  }
+  const row = document.createElement('div');
+  row.className = 'msg-row bot';
+  row.innerHTML = `
+    <div class="msg-avatar bot">🏛️</div>
+    <div class="msg-bubble">
+      <div class="bubble-text">${escHtml(data.answer)}</div>
+      ${srcHtml}
+      <div class="msg-time">${now()}${langBadge}</div>
+    </div>`;
+  ca.insertBefore(row, ti);
+}
 
-  function escapeHtml(str) {
-    return String(str)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
-  }
-
-  function formatAnswer(text) {
-    // Convert markdown-style bullets to HTML
-    return escapeHtml(text)
-      .replace(/\n/g, '<br>')
-      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-      .replace(/•\s/g, '• ');
-  }
-
-  function formatTime() {
-    return new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
-  }
+function escHtml(str) {
+  return String(str)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
 </script>
 </body>
 </html>

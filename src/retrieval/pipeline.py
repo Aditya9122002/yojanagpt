@@ -8,12 +8,6 @@ Flow for non-English queries:
   4. Build prompt with English chunks + original question
   5. LLM generates answer (in user's language — the prompt instructs this)
   6. Return answer with source attribution
-
-Note on translation strategy:
-  We translate the QUESTION to English for better retrieval,
-  but we include the ORIGINAL question in the prompt so the LLM
-  knows what language to answer in. This gives better results than
-  translating the answer after the fact.
 """
 
 from __future__ import annotations
@@ -23,7 +17,14 @@ from dataclasses import dataclass, field
 from typing import List, Optional
 
 from .llm import GeminiClient
-from .prompt import build_prompt, build_eligibility_prompt
+from .prompt import (
+    build_prompt,
+    build_eligibility_prompt,
+    build_documents_prompt,
+    build_apply_guide_prompt,
+    build_compare_prompt,
+    build_contact_prompt,
+)
 from .retriever import RetrievedChunk, SchemeRetriever
 
 logger = logging.getLogger(__name__)
@@ -58,24 +59,20 @@ class YojanaRAGPipeline:
     """
     The main RAG pipeline for YojanaGPT with multilingual support.
 
-    Usage:
-        pipeline = YojanaRAGPipeline()
-
-        # Works in any language
-        response = pipeline.ask("PM Kisan ke liye kaun eligible hai?")
-        response = pipeline.ask("PM கிசான் திட்டம் என்ன?")  # Tamil
-        response = pipeline.ask("Who is eligible for PM Kisan?")  # English
-
-        print(response.answer)
-        print(response.detected_language)
-        print(response.sources)
+    Supports:
+      - General scheme Q&A
+      - Eligibility checking with user profile
+      - Document checklist extraction
+      - Step-by-step application guide
+      - Side-by-side scheme comparison
+      - Contact details extraction
     """
 
     def __init__(
         self,
         chroma_dir: str = DEFAULT_CHROMA_DIR,
         top_k: int = DEFAULT_TOP_K,
-        gemini_api_key: Optional[str] = None,
+        groq_api_key: Optional[str] = None,
         enable_translation: bool = True,
     ):
         logger.info("Initialising YojanaRAGPipeline...")
@@ -84,12 +81,10 @@ class YojanaRAGPipeline:
             chroma_dir=chroma_dir,
             top_k=top_k,
         )
-        self.llm = GeminiClient(api_key=gemini_api_key)
+        self.llm = GeminiClient(api_key=groq_api_key)
         self.top_k = top_k
         self.enable_translation = enable_translation
 
-        # Lazy load translator — only import if translation enabled
-        # This avoids loading langdetect if not needed
         self._translator = None
         if enable_translation:
             self._load_translator()
@@ -97,29 +92,63 @@ class YojanaRAGPipeline:
         logger.info("YojanaRAGPipeline ready | translation=%s", enable_translation)
 
     def _load_translator(self):
-        """Lazy load the translator to avoid import errors if not installed."""
+        """Lazy load the translator."""
         try:
             from src.translation.translator import SchemeTranslator
             self._translator = SchemeTranslator()
             logger.info("Translation layer loaded")
         except ImportError as e:
             logger.warning(
-                "Translation not available (missing packages): %s. "
-                "Queries will be processed in original language only.", e
+                "Translation not available: %s. Processing in original language only.", e
             )
             self.enable_translation = False
 
+    # ── Internal helpers ──────────────────────────────────────────────────────
+
+    def _translate_to_english(self, question: str) -> tuple[str, str]:
+        """
+        Translate question to English for retrieval.
+        Returns (english_question, detected_language).
+        Falls back to original question if translation fails.
+        """
+        if not self.enable_translation or not self._translator:
+            return question, "en"
+        try:
+            english_question, detected_lang = self._translator.to_english(question)
+            logger.info("Language: %s | English query: %s", detected_lang, english_question[:80])
+            return english_question, detected_lang
+        except Exception as e:
+            logger.warning("Translation failed, using original: %s", e)
+            return question, "en"
+
+    def _retrieve(self, english_question: str, top_k: Optional[int] = None) -> List[RetrievedChunk]:
+        """Retrieve chunks from ChromaDB using an English query."""
+        chunks = self.retriever.search(english_question, top_k=top_k or self.top_k)
+        logger.info("Retrieved %d chunks", len(chunks))
+        return chunks
+
+    def _build_response(
+        self,
+        answer: str,
+        question: str,
+        detected_lang: str,
+        english_question: str,
+        chunks: List[RetrievedChunk],
+    ) -> RAGResponse:
+        return RAGResponse(
+            answer=answer,
+            question=question,
+            detected_language=detected_lang,
+            english_question=english_question,
+            chunks_used=chunks,
+        )
+
+    # ── Public methods ────────────────────────────────────────────────────────
+
     def ask(self, question: str, top_k: Optional[int] = None) -> RAGResponse:
         """
-        Answer a user's question about government schemes.
-        Supports any language — automatically detects and handles translation.
-
-        Args:
-            question: User's question in any language.
-            top_k:    Number of chunks to retrieve.
-
-        Returns:
-            RAGResponse with answer in the user's language.
+        Answer a general question about government schemes.
+        Supports any language — auto-detects and handles translation.
         """
         if not question or not question.strip():
             return RAGResponse(
@@ -128,42 +157,11 @@ class YojanaRAGPipeline:
             )
 
         logger.info("Processing question: %s", question[:100])
-
-        # Step 1 — detect language and translate to English for retrieval
-        detected_lang = "en"
-        english_question = question
-
-        if self.enable_translation and self._translator:
-            try:
-                english_question, detected_lang = self._translator.to_english(question)
-                logger.info(
-                    "Language: %s | English query: %s",
-                    detected_lang,
-                    english_question[:80],
-                )
-            except Exception as e:
-                logger.warning("Translation failed, using original: %s", e)
-                english_question = question
-                detected_lang = "en"
-
-        # Step 2 — retrieve using English question (better embedding match)
-        chunks = self.retriever.search(english_question, top_k=top_k or self.top_k)
-        logger.info("Retrieved %d chunks", len(chunks))
-
-        # Step 3 — build prompt
-        # Pass ORIGINAL question (not translated) so LLM answers in user's language
+        english_question, detected_lang = self._translate_to_english(question)
+        chunks = self._retrieve(english_question, top_k)
         prompt = build_prompt(question, chunks)
-
-        # Step 4 — generate answer
         answer = self.llm.generate(prompt)
-
-        return RAGResponse(
-            answer=answer,
-            question=question,
-            detected_language=detected_lang,
-            english_question=english_question,
-            chunks_used=chunks,
-        )
+        return self._build_response(answer, question, detected_lang, english_question, chunks)
 
     def check_eligibility(
         self,
@@ -172,36 +170,111 @@ class YojanaRAGPipeline:
         top_k: Optional[int] = None,
     ) -> RAGResponse:
         """
-        Check eligibility for schemes based on user profile.
+        Check scheme eligibility based on user profile.
 
         Args:
             question:     User's eligibility question.
             user_profile: Dict with age, income, caste, state, occupation etc.
-            top_k:        Number of chunks to retrieve.
-
-        Returns:
-            RAGResponse with eligibility assessment.
         """
-        logger.info("Checking eligibility | profile=%s", user_profile)
-
-        # Translate question for retrieval
-        english_question = question
-        detected_lang = "en"
-
-        if self.enable_translation and self._translator:
-            try:
-                english_question, detected_lang = self._translator.to_english(question)
-            except Exception:
-                pass
-
-        chunks = self.retriever.search(english_question, top_k=top_k or self.top_k)
+        logger.info("Checking eligibility | profile keys=%s", list(user_profile.keys()))
+        english_question, detected_lang = self._translate_to_english(question)
+        chunks = self._retrieve(english_question, top_k)
         prompt = build_eligibility_prompt(question, chunks, user_profile)
         answer = self.llm.generate(prompt)
+        return self._build_response(answer, question, detected_lang, english_question, chunks)
 
-        return RAGResponse(
-            answer=answer,
-            question=question,
-            detected_language=detected_lang,
-            english_question=english_question,
-            chunks_used=chunks,
-        )
+    def get_documents(self, question: str, top_k: Optional[int] = None) -> RAGResponse:
+        """
+        Return a document checklist for applying to a scheme.
+
+        The LLM extracts all required documents from the scheme's context
+        and formats them as a numbered, categorised checklist.
+
+        Args:
+            question: e.g. "What documents do I need for PM Kisan?"
+        """
+        logger.info("Document checklist request: %s", question[:100])
+        english_question, detected_lang = self._translate_to_english(question)
+        chunks = self._retrieve(english_question, top_k)
+        prompt = build_documents_prompt(question, chunks)
+        answer = self.llm.generate(prompt)
+        return self._build_response(answer, question, detected_lang, english_question, chunks)
+
+    def get_apply_guide(self, question: str, top_k: Optional[int] = None) -> RAGResponse:
+        """
+        Return a step-by-step application guide for a scheme.
+
+        Covers online and offline application paths, portal URLs,
+        office to visit, and expected timeline.
+
+        Args:
+            question: e.g. "How do I apply for PM Awas Yojana?"
+        """
+        logger.info("Application guide request: %s", question[:100])
+        english_question, detected_lang = self._translate_to_english(question)
+        chunks = self._retrieve(english_question, top_k)
+        prompt = build_apply_guide_prompt(question, chunks)
+        answer = self.llm.generate(prompt)
+        return self._build_response(answer, question, detected_lang, english_question, chunks)
+
+    def compare_schemes(
+        self,
+        question: str,
+        scheme_names: List[str],
+        top_k: Optional[int] = None,
+    ) -> RAGResponse:
+        """
+        Compare two or more schemes side by side.
+
+        Retrieves chunks for all named schemes and asks the LLM to
+        produce a structured comparison table covering benefits,
+        eligibility, application process, and who should apply.
+
+        Args:
+            question:     User's comparison question.
+            scheme_names: List of scheme names to compare (e.g. ["PM Kisan", "PMFBY"])
+        """
+        logger.info("Comparing schemes: %s", scheme_names)
+
+        # Translate the question for retrieval
+        english_question, detected_lang = self._translate_to_english(question)
+
+        # Build a combined search query that includes all scheme names
+        # so retriever fetches chunks for all of them
+        search_queries = scheme_names if scheme_names else [english_question]
+        all_chunks: List[RetrievedChunk] = []
+        seen_ids = set()
+
+        for sq in search_queries:
+            chunks = self._retrieve(sq, top_k=top_k or self.top_k)
+            for chunk in chunks:
+                if chunk.scheme_id not in seen_ids:
+                    all_chunks.append(chunk)
+                    seen_ids.add(chunk.scheme_id)
+
+        # Also retrieve using the full question in case the names alone miss context
+        for chunk in self._retrieve(english_question, top_k=top_k or self.top_k):
+            if chunk.scheme_id not in seen_ids:
+                all_chunks.append(chunk)
+                seen_ids.add(chunk.scheme_id)
+
+        prompt = build_compare_prompt(question, all_chunks, scheme_names)
+        answer = self.llm.generate(prompt)
+        return self._build_response(answer, question, detected_lang, english_question, all_chunks)
+
+    def get_contact(self, question: str, top_k: Optional[int] = None) -> RAGResponse:
+        """
+        Extract contact details and helpline info for a scheme.
+
+        Returns helpline numbers, portal URLs, ministry name,
+        email addresses, and grievance portal if available.
+
+        Args:
+            question: e.g. "What is the helpline for PM Kisan?"
+        """
+        logger.info("Contact details request: %s", question[:100])
+        english_question, detected_lang = self._translate_to_english(question)
+        chunks = self._retrieve(english_question, top_k)
+        prompt = build_contact_prompt(question, chunks)
+        answer = self.llm.generate(prompt)
+        return self._build_response(answer, question, detected_lang, english_question, chunks)

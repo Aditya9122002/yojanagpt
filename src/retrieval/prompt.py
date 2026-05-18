@@ -1,8 +1,8 @@
 """
-prompt.py — Builds the prompt sent to Gemini from retrieved chunks.
+prompt.py — Builds the prompt sent to the LLM from retrieved chunks.
 
 Takes the user's question and the top-k chunks from ChromaDB,
-and formats them into a clear prompt that tells Gemini:
+and formats them into a clear prompt that tells the LLM:
   - What context to use
   - How to answer
   - What language to answer in
@@ -17,8 +17,6 @@ from .retriever import RetrievedChunk
 
 
 # ── System prompt ─────────────────────────────────────────────────────────────
-# This tells Gemini its role and rules.
-# Kept concise — longer system prompts waste tokens and confuse smaller models.
 
 SYSTEM_PROMPT = """You are YojanaGPT, an AI assistant that helps Indian citizens find and understand government schemes.
 
@@ -37,22 +35,16 @@ def build_prompt(
     chunks: List[RetrievedChunk],
 ) -> str:
     """
-    Build the full prompt to send to Gemini.
-
-    Format:
-      [System instructions]
-      [Context — scheme chunks]
-      [User question]
+    Build the full prompt for a general scheme question.
 
     Args:
         question: The user's original question.
         chunks:   Retrieved chunks from ChromaDB.
 
     Returns:
-        Complete prompt string ready to send to Gemini.
+        Complete prompt string ready to send to the LLM.
     """
     if not chunks:
-        # No context found — ask Gemini to say so honestly
         return f"""{SYSTEM_PROMPT}
 
 No relevant scheme information was found for this question.
@@ -61,12 +53,10 @@ User question: {question}
 
 Please tell the user you could not find relevant information and suggest they visit myscheme.gov.in directly."""
 
-    # Build the context block from chunks
     context_parts = []
     seen_schemes = set()
 
     for i, chunk in enumerate(chunks, 1):
-        # Group chunks by scheme for readability
         scheme_header = ""
         if chunk.scheme_id not in seen_schemes:
             scheme_header = f"\n--- Scheme: {chunk.scheme_name} ---\n"
@@ -99,10 +89,7 @@ def build_eligibility_prompt(
     user_profile: dict,
 ) -> str:
     """
-    Build a prompt specifically for eligibility checking.
-
-    Takes the user's profile (age, income, caste, state, etc.) and
-    asks Gemini to check eligibility against the scheme criteria.
+    Build a prompt for eligibility checking against a user profile.
 
     Args:
         question:     The user's question.
@@ -112,7 +99,6 @@ def build_eligibility_prompt(
     Returns:
         Complete eligibility-checking prompt.
     """
-    # Format user profile as readable text
     profile_lines = []
     field_labels = {
         "age": "Age",
@@ -129,9 +115,12 @@ def build_eligibility_prompt(
         if value:
             profile_lines.append(f"  - {label}: {value}")
 
-    profile_text = "\n".join(profile_lines) if profile_lines else "  - (No profile information provided)"
+    profile_text = (
+        "\n".join(profile_lines)
+        if profile_lines
+        else "  - (No profile information provided)"
+    )
 
-    # Build context
     context_parts = []
     for chunk in chunks:
         if chunk.chunk_type in ("eligibility", "description", "benefit"):
@@ -141,7 +130,11 @@ def build_eligibility_prompt(
                 f"{chunk.text.strip()}"
             )
 
-    context = "\n\n".join(context_parts) if context_parts else "No eligibility information found."
+    context = (
+        "\n\n".join(context_parts)
+        if context_parts
+        else "No eligibility information found."
+    )
 
     prompt = f"""{SYSTEM_PROMPT}
 
@@ -159,6 +152,285 @@ Based on the user's profile and the scheme eligibility criteria above, tell them
 2. Which criteria they meet
 3. Which criteria they may not meet (if any)
 4. Next steps to apply
+
+Answer:"""
+
+    return prompt
+
+
+def build_documents_prompt(
+    question: str,
+    chunks: List[RetrievedChunk],
+) -> str:
+    """
+    Build a prompt that extracts required documents for a scheme.
+
+    Instructs the LLM to produce a clean numbered checklist of documents
+    the applicant must gather before applying.
+
+    Args:
+        question: User's question (e.g. "What documents do I need for PM Kisan?")
+        chunks:   Retrieved chunks from ChromaDB.
+
+    Returns:
+        Prompt string focused on document requirements.
+    """
+    if not chunks:
+        return f"""{SYSTEM_PROMPT}
+
+No relevant scheme information was found.
+
+User question: {question}
+
+Tell the user you could not find document requirements and suggest they visit myscheme.gov.in."""
+
+    context_parts = []
+    seen_schemes = set()
+
+    for chunk in chunks:
+        scheme_header = ""
+        if chunk.scheme_id not in seen_schemes:
+            scheme_header = f"\n--- Scheme: {chunk.scheme_name} ---\n"
+            seen_schemes.add(chunk.scheme_id)
+        context_parts.append(
+            f"{scheme_header}[{chunk.chunk_type.upper()}]\n{chunk.text.strip()}"
+        )
+
+    context = "\n\n".join(context_parts)
+
+    prompt = f"""{SYSTEM_PROMPT}
+
+--- CONTEXT (Government Scheme Information) ---
+{context}
+--- END CONTEXT ---
+
+User question: {question}
+
+Your task: Extract and list ALL documents the applicant needs to apply for this scheme.
+
+Format your answer as a numbered checklist. For each document write:
+  - Document name
+  - Why it is needed (one short sentence)
+
+Group documents by category if possible (Identity proof, Income proof, Bank details, etc.).
+End with a note about where to submit these documents.
+
+Answer in the same language as the question.
+
+Answer:"""
+
+    return prompt
+
+
+def build_apply_guide_prompt(
+    question: str,
+    chunks: List[RetrievedChunk],
+) -> str:
+    """
+    Build a prompt that generates a step-by-step application guide.
+
+    Instructs the LLM to produce clear, actionable steps a citizen
+    can follow to actually apply for the scheme — online or offline.
+
+    Args:
+        question: User's question (e.g. "How do I apply for PM Kisan?")
+        chunks:   Retrieved chunks from ChromaDB.
+
+    Returns:
+        Prompt string focused on application procedure.
+    """
+    if not chunks:
+        return f"""{SYSTEM_PROMPT}
+
+No relevant scheme information was found.
+
+User question: {question}
+
+Tell the user you could not find application steps and suggest they visit myscheme.gov.in."""
+
+    context_parts = []
+    seen_schemes = set()
+
+    for chunk in chunks:
+        scheme_header = ""
+        if chunk.scheme_id not in seen_schemes:
+            scheme_header = f"\n--- Scheme: {chunk.scheme_name} ---\n"
+            seen_schemes.add(chunk.scheme_id)
+        context_parts.append(
+            f"{scheme_header}[{chunk.chunk_type.upper()}]\n{chunk.text.strip()}"
+        )
+
+    context = "\n\n".join(context_parts)
+
+    prompt = f"""{SYSTEM_PROMPT}
+
+--- CONTEXT (Government Scheme Information) ---
+{context}
+--- END CONTEXT ---
+
+User question: {question}
+
+Your task: Provide a clear step-by-step guide to apply for this scheme.
+
+Format:
+Step 1: [Action] — [Brief explanation]
+Step 2: ...
+...
+
+Include:
+- Whether application is online, offline, or both
+- Official website or portal URL if mentioned in the context
+- Which government office to visit for offline applications
+- Approximate timeline or processing time if mentioned
+- Helpline number or contact if mentioned
+
+Keep language simple. A first-time applicant with no prior experience should be able to follow these steps.
+Answer in the same language as the question.
+
+Answer:"""
+
+    return prompt
+
+
+def build_compare_prompt(
+    question: str,
+    chunks: List[RetrievedChunk],
+    scheme_names: List[str],
+) -> str:
+    """
+    Build a prompt that compares two or more schemes side by side.
+
+    Instructs the LLM to produce a structured comparison covering
+    benefits, eligibility, application process, and who should apply.
+
+    Args:
+        question:     User's comparison question.
+        chunks:       Retrieved chunks covering all schemes to compare.
+        scheme_names: Names of schemes being compared (for clarity).
+
+    Returns:
+        Prompt string focused on scheme comparison.
+    """
+    if not chunks:
+        return f"""{SYSTEM_PROMPT}
+
+No relevant scheme information was found for comparison.
+
+User question: {question}
+
+Tell the user you could not find enough information and suggest they visit myscheme.gov.in."""
+
+    context_parts = []
+    seen_schemes = set()
+
+    for chunk in chunks:
+        scheme_header = ""
+        if chunk.scheme_id not in seen_schemes:
+            scheme_header = f"\n--- Scheme: {chunk.scheme_name} ---\n"
+            seen_schemes.add(chunk.scheme_id)
+        context_parts.append(
+            f"{scheme_header}[{chunk.chunk_type.upper()}]\n{chunk.text.strip()}"
+        )
+
+    context = "\n\n".join(context_parts)
+    schemes_list = " vs ".join(scheme_names) if scheme_names else "the requested schemes"
+
+    prompt = f"""{SYSTEM_PROMPT}
+
+--- CONTEXT (Government Scheme Information) ---
+{context}
+--- END CONTEXT ---
+
+User question: {question}
+
+Your task: Compare {schemes_list} side by side.
+
+Use this structure:
+
+**Overview**
+[One sentence about each scheme's purpose]
+
+**Benefits**
+[What each scheme provides — money, subsidy, loan, insurance, etc.]
+
+**Who is eligible**
+[Key eligibility criteria for each scheme]
+
+**How to apply**
+[Application process for each scheme — online/offline, portal]
+
+**Key differences**
+[Most important differences a citizen should know when choosing]
+
+**Recommendation**
+[Which scheme suits which type of person — be specific]
+
+Answer in the same language as the question.
+
+Answer:"""
+
+    return prompt
+
+
+def build_contact_prompt(
+    question: str,
+    chunks: List[RetrievedChunk],
+) -> str:
+    """
+    Build a prompt that extracts contact details and helpline info for a scheme.
+
+    Args:
+        question: User's question about contacts/helpline.
+        chunks:   Retrieved chunks from ChromaDB.
+
+    Returns:
+        Prompt string focused on contact extraction.
+    """
+    if not chunks:
+        return f"""{SYSTEM_PROMPT}
+
+No relevant scheme information was found.
+
+User question: {question}
+
+Tell the user you could not find contact details and suggest they visit myscheme.gov.in or call 1800-11-8080 (MyScheme helpline)."""
+
+    context_parts = []
+    seen_schemes = set()
+
+    for chunk in chunks:
+        scheme_header = ""
+        if chunk.scheme_id not in seen_schemes:
+            scheme_header = f"\n--- Scheme: {chunk.scheme_name} ---\n"
+            seen_schemes.add(chunk.scheme_id)
+        context_parts.append(
+            f"{scheme_header}[{chunk.chunk_type.upper()}]\n{chunk.text.strip()}"
+        )
+
+    context = "\n\n".join(context_parts)
+
+    prompt = f"""{SYSTEM_PROMPT}
+
+--- CONTEXT (Government Scheme Information) ---
+{context}
+--- END CONTEXT ---
+
+User question: {question}
+
+Your task: Extract all contact information for this scheme.
+
+List:
+- Helpline numbers (toll-free if available)
+- Official website / portal URL
+- Email addresses
+- Nodal ministry or department name
+- State-level contact points if mentioned
+- Grievance redressal portal if mentioned
+
+If a specific piece of information is not in the context, say "Not specified in available data" rather than guessing.
+End with: "For general scheme queries you can also call MyScheme helpline: 1800-11-8080"
+
+Answer in the same language as the question.
 
 Answer:"""
 

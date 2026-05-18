@@ -1,126 +1,131 @@
 """
-models.py — Pydantic models for API request and response validation.
-
-These define the exact shape of data coming in and going out of the API.
-FastAPI uses these automatically for:
-  - Input validation (rejects bad requests with clear error messages)
-  - Response serialization (converts Python objects to JSON)
-  - Auto-generated API documentation at /docs
+models.py — Pydantic request/response models for YojanaGPT API.
 """
 
 from __future__ import annotations
 
-from typing import List, Optional
+from typing import Dict, List, Optional
+
 from pydantic import BaseModel, Field
 
 
-# ── Request Models ────────────────────────────────────────────────────────────
-
-class AskRequest(BaseModel):
-    """
-    Request body for POST /ask
-
-    Example:
-        {
-            "question": "PM Kisan ke liye kaun eligible hai?",
-            "top_k": 5
-        }
-    """
-    question: str = Field(
-        ...,
-        min_length=3,
-        max_length=500,
-        description="Question about any government scheme in any Indian language",
-        example="PM Kisan ke liye kaun eligible hai?",
-    )
-    top_k: int = Field(
-        default=5,
-        ge=1,
-        le=20,
-        description="Number of scheme chunks to retrieve (1-20)",
-    )
-
-
-class EligibilityRequest(BaseModel):
-    """
-    Request body for POST /eligibility
-
-    Example:
-        {
-            "question": "Kya mujhe PM Kisan mil sakta hai?",
-            "profile": {
-                "age": "45",
-                "state": "Maharashtra",
-                "occupation": "Farmer",
-                "income": "80000"
-            }
-        }
-    """
-    question: str = Field(
-        ...,
-        min_length=3,
-        max_length=500,
-        description="Eligibility question in any language",
-        example="Kya mujhe koi scholarship mil sakti hai?",
-    )
-    profile: dict = Field(
-        default_factory=dict,
-        description="User profile with keys: age, state, income, caste, occupation, gender, disability, bpl",
-        example={
-            "age": "25",
-            "state": "Maharashtra",
-            "caste": "OBC",
-            "income": "150000",
-            "occupation": "Student",
-        },
-    )
-    top_k: int = Field(default=5, ge=1, le=20)
-
-
-# ── Response Models ───────────────────────────────────────────────────────────
+# ── Shared response pieces ─────────────────────────────────────────────────────
 
 class SchemeSource(BaseModel):
-    """A single scheme cited as a source in the answer."""
     scheme_id: str
     scheme_name: str
     source_url: str
 
 
 class AskResponse(BaseModel):
-    """
-    Response body for POST /ask and POST /eligibility
-
-    Example:
-        {
-            "answer": "PM-KISAN ke liye sabhi zameen dharkar kisan...",
-            "detected_language": "hi",
-            "language_name": "Hindi",
-            "sources": [
-                {
-                    "scheme_id": "pm-kisan",
-                    "scheme_name": "Pradhan Mantri Kisan Samman Nidhi",
-                    "source_url": "https://www.myscheme.gov.in/schemes/pm-kisan"
-                }
-            ],
-            "chunks_retrieved": 5
-        }
-    """
-    answer: str = Field(description="Answer in the same language as the question")
-    detected_language: str = Field(description="Detected language code e.g. 'hi', 'ta', 'en'")
-    language_name: str = Field(description="Human readable language name e.g. 'Hindi'")
-    sources: List[SchemeSource] = Field(description="Schemes cited in the answer")
-    chunks_retrieved: int = Field(description="Number of scheme chunks used to generate the answer")
+    answer: str
+    detected_language: str
+    language_name: str
+    sources: List[SchemeSource]
+    chunks_retrieved: int
 
 
 class HealthResponse(BaseModel):
-    """Response body for GET /health"""
     status: str
     chunks_in_db: int
     model: str
     translation_enabled: bool
 
 
-class ErrorResponse(BaseModel):
-    """Standard error response"""
-    error: str
-    detail: Optional[str] = None
+# ── Request models ─────────────────────────────────────────────────────────────
+
+class AskRequest(BaseModel):
+    question: str = Field(..., min_length=1, max_length=1000)
+    top_k: Optional[int] = Field(default=5, ge=1, le=20)
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "question": "PM Kisan ke liye kaun eligible hai?",
+                "top_k": 5,
+            }
+        }
+
+
+class EligibilityRequest(BaseModel):
+    question: str = Field(..., min_length=1, max_length=1000)
+    profile: Dict[str, str] = Field(default_factory=dict)
+    top_k: Optional[int] = Field(default=5, ge=1, le=20)
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "question": "Am I eligible for any farmer scheme?",
+                "profile": {
+                    "age": "35",
+                    "state": "Maharashtra",
+                    "caste": "OBC",
+                    "income": "120000",
+                    "occupation": "Farmer",
+                    "gender": "Male",
+                },
+                "top_k": 5,
+            }
+        }
+
+
+class DocumentsRequest(BaseModel):
+    """Request documents checklist for a scheme."""
+    question: str = Field(..., min_length=1, max_length=1000)
+    top_k: Optional[int] = Field(default=5, ge=1, le=20)
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "question": "What documents do I need for PM Kisan?",
+                "top_k": 5,
+            }
+        }
+
+
+class ApplyGuideRequest(BaseModel):
+    """Request step-by-step application guide for a scheme."""
+    question: str = Field(..., min_length=1, max_length=1000)
+    top_k: Optional[int] = Field(default=5, ge=1, le=20)
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "question": "How do I apply for PM Awas Yojana?",
+                "top_k": 5,
+            }
+        }
+
+
+class CompareRequest(BaseModel):
+    """Request side-by-side comparison of two or more schemes."""
+    question: str = Field(..., min_length=1, max_length=1000)
+    scheme_names: List[str] = Field(
+        ...,
+        min_length=2,
+        description="List of scheme names to compare. Must have at least 2.",
+    )
+    top_k: Optional[int] = Field(default=5, ge=1, le=20)
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "question": "Compare PM Kisan and PMFBY",
+                "scheme_names": ["PM Kisan", "PMFBY"],
+                "top_k": 5,
+            }
+        }
+
+
+class ContactRequest(BaseModel):
+    """Request contact details and helpline info for a scheme."""
+    question: str = Field(..., min_length=1, max_length=1000)
+    top_k: Optional[int] = Field(default=5, ge=1, le=20)
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "question": "What is the helpline number for PM Kisan?",
+                "top_k": 5,
+            }
+        }
