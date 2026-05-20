@@ -1,7 +1,7 @@
 ---
 title: YojanaGPT
 emoji: 🏛️
-colorFrom: orange
+colorFrom: red
 colorTo: green
 sdk: docker
 pinned: true
