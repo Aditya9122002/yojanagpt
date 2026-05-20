@@ -27,6 +27,9 @@ import chromadb
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+
 from .deps import get_pipeline, initialise_pipeline
 from .models import (
     AskRequest,
@@ -74,6 +77,13 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.mount("/frontend", StaticFiles(directory="frontend"), name="frontend")
+
+@app.get("/ui", tags=["General"])
+def serve_ui():
+    """Serve the frontend UI."""
+    return FileResponse("frontend/index.html")
 
 
 # ── Shared helper ─────────────────────────────────────────────────────────────
