@@ -593,6 +593,51 @@ html, body {
 .send-btn:active { transform: scale(0.97); }
 .send-btn:disabled { background: var(--bg4); cursor: not-allowed; transform: none; }
 
+/* Mic button */
+.mic-btn {
+  width: 38px; height: 38px;
+  background: var(--bg4);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  color: var(--muted);
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all var(--t);
+}
+.mic-btn:hover { background: var(--bg3); color: var(--white); border-color: var(--saffron); }
+.mic-btn.listening {
+  background: #7f1d1d;
+  border-color: #ef4444;
+  color: #ef4444;
+  animation: micPulse 1s infinite;
+}
+@keyframes micPulse {
+  0%,100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.4); }
+  50%      { box-shadow: 0 0 0 6px rgba(239,68,68,0); }
+}
+
+/* Speaker button on bot messages */
+.speak-btn {
+  background: none;
+  border: 1px solid var(--border2);
+  border-radius: 100px;
+  padding: 3px 10px;
+  font-size: 0.72rem;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all var(--t);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: 'Space Mono', monospace;
+}
+.speak-btn:hover { border-color: var(--saffron); color: var(--saffron); }
+.speak-btn.playing { border-color: var(--green); color: var(--green); }
+
 .input-hint {
   margin-top: 8px;
   font-size: 0.68rem;
@@ -784,6 +829,9 @@ html, body {
   <!-- ── Input area ───────────────────────────────────────────── -->
   <div class="input-area">
     <div class="input-box">
+      <button class="mic-btn" id="micBtn" onclick="toggleMic()" title="Voice input (Chrome/Android)">
+        🎤
+      </button>
       <textarea
         id="questionInput"
         rows="1"
@@ -795,19 +843,13 @@ html, body {
         ➤
       </button>
     </div>
-    <div class="input-hint">Press Enter to send · Shift+Enter for new line · 4,600+ schemes available</div>
+    <div class="input-hint">🎤 Voice input supported · Press Enter to send · 4,600+ schemes available</div>
   </div>
 
 </div><!-- .app -->
 
 <script>
-const API = (() => {
-  const host = window.location.hostname;
-  if (host.includes('hf.space') || host.includes('huggingface.co')) {
-    return window.location.origin;
-  }
-  return 'http://localhost:8000';
-})();
+const API = 'http://localhost:8000';
 
 let currentMode = 'ask';
 let schemeNames  = [];
@@ -1092,6 +1134,7 @@ function addBotMessage(data) {
   const ti = document.getElementById('typingIndicator');
 
   const langLabel = data.language_name || data.detected_language || '';
+  const langCode  = data.detected_language || 'en';
 
   // Sources HTML
   let srcHtml = '';
@@ -1106,6 +1149,9 @@ function addBotMessage(data) {
     ? `<span style="font-size:.68rem;color:var(--muted);font-family:'Space Mono',monospace;margin-left:6px;">${langLabel.toUpperCase()}</span>`
     : '';
 
+  // Unique ID for this message's audio
+  const msgId = 'msg-' + Date.now();
+
   const row = document.createElement('div');
   row.className = 'msg-row bot';
   row.innerHTML = `
@@ -1113,9 +1159,143 @@ function addBotMessage(data) {
     <div class="msg-bubble">
       <div class="bubble-text">${escHtml(data.answer)}</div>
       ${srcHtml}
-      <div class="msg-time">${now()}${langBadge}</div>
+      <div class="msg-time">
+        ${now()}${langBadge}
+        <button class="speak-btn" id="speak-${msgId}"
+          onclick="speakAnswer('${msgId}', ${JSON.stringify(data.answer)}, '${langCode}')"
+          title="Listen to this answer">
+          🔊 Listen
+        </button>
+      </div>
     </div>`;
   ca.insertBefore(row, ti);
+}
+
+// ── Voice Input (Web Speech API) ────────────────────────────────
+let recognition = null;
+let isListening = false;
+
+function toggleMic() {
+  // Check browser support
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    showError('Voice input not supported in this browser. Use Chrome or Edge.');
+    return;
+  }
+
+  if (isListening) {
+    recognition.stop();
+    return;
+  }
+
+  recognition = new SpeechRecognition();
+  recognition.continuous = false;
+  recognition.interimResults = true;
+
+  // Use current mode's language hint
+  // Default to Hindi + English multilingual
+  recognition.lang = 'hi-IN';
+
+  const micBtn = document.getElementById('micBtn');
+  const input  = document.getElementById('questionInput');
+
+  recognition.onstart = () => {
+    isListening = true;
+    micBtn.classList.add('listening');
+    micBtn.textContent = '⏹';
+    micBtn.title = 'Stop listening';
+    input.placeholder = 'सुन रहा हूँ… / Listening…';
+  };
+
+  recognition.onresult = (e) => {
+    let transcript = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      transcript += e.results[i][0].transcript;
+    }
+    input.value = transcript;
+    autoResize(input);
+  };
+
+  recognition.onend = () => {
+    isListening = false;
+    micBtn.classList.remove('listening');
+    micBtn.textContent = '🎤';
+    micBtn.title = 'Voice input';
+    input.placeholder = 'अपना सवाल यहाँ लिखें… / Ask your question…';
+
+    // Auto-send if something was captured
+    if (input.value.trim()) {
+      setTimeout(() => handleSend(), 400);
+    }
+  };
+
+  recognition.onerror = (e) => {
+    isListening = false;
+    micBtn.classList.remove('listening');
+    micBtn.textContent = '🎤';
+    if (e.error === 'no-speech') {
+      showError('No speech detected. Please try again.');
+    } else if (e.error === 'not-allowed') {
+      showError('Microphone access denied. Please allow mic access in browser settings.');
+    } else {
+      showError('Voice input error: ' + e.error);
+    }
+  };
+
+  recognition.start();
+}
+
+// ── Voice Output (gTTS via /speak endpoint) ─────────────────────
+let currentAudio = null;
+
+async function speakAnswer(msgId, text, langCode) {
+  const btn = document.getElementById('speak-' + msgId);
+
+  // Stop if already playing
+  if (currentAudio && !currentAudio.paused) {
+    currentAudio.pause();
+    currentAudio = null;
+    document.querySelectorAll('.speak-btn').forEach(b => {
+      b.classList.remove('playing');
+      b.textContent = '🔊 Listen';
+    });
+    return;
+  }
+
+  btn.textContent = '⏳ Loading…';
+  btn.disabled = true;
+
+  try {
+    const resp = await fetch(API + '/speak', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text, lang_code: langCode }),
+    });
+
+    if (!resp.ok) throw new Error('TTS failed');
+
+    const blob = await resp.blob();
+    const url  = URL.createObjectURL(blob);
+
+    currentAudio = new Audio(url);
+    currentAudio.play();
+
+    btn.textContent = '⏹ Stop';
+    btn.classList.add('playing');
+    btn.disabled = false;
+
+    currentAudio.onended = () => {
+      btn.textContent = '🔊 Listen';
+      btn.classList.remove('playing');
+      URL.revokeObjectURL(url);
+      currentAudio = null;
+    };
+
+  } catch (e) {
+    btn.textContent = '🔊 Listen';
+    btn.disabled = false;
+    showError('Could not load audio. Check your connection.');
+  }
 }
 
 function escHtml(str) {

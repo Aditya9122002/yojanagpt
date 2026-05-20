@@ -129,3 +129,7 @@ class ContactRequest(BaseModel):
                 "top_k": 5,
             }
         }
+        
+class SpeakRequest(BaseModel):
+    text: str = Field(..., min_length=1, max_length=5000)
+    lang_code: str = Field(default="en")

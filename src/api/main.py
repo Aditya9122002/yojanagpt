@@ -14,6 +14,9 @@ Routes:
 Run with:
   uvicorn src.api.main:app --reload --host 0.0.0.0 --port 8000
 """
+from fastapi.responses import FileResponse, StreamingResponse
+import io
+from .models import SpeakRequest  # add SpeakRequest to existing import
 
 from __future__ import annotations
 
