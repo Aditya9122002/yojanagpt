@@ -1,3 +1,14 @@
+---
+title: YojanaGPT
+emoji: 🏛️
+colorFrom: orange
+colorTo: green
+sdk: docker
+pinned: true
+license: mit
+short_description: AI assistant for Indian government schemes in 22 languages
+---
+
 # 🏛️ YojanaGPT
 
 <div align="center">
