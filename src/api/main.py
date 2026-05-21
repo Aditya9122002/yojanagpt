@@ -14,24 +14,25 @@ Routes:
 Run with:
   uvicorn src.api.main:app --reload --host 0.0.0.0 --port 8000
 """
-from fastapi.responses import FileResponse, StreamingResponse
-import io
-from .models import SpeakRequest  # add SpeakRequest to existing import
 
 from __future__ import annotations
 
 from dotenv import load_dotenv
 load_dotenv()
-
+import io
 import logging
 from contextlib import asynccontextmanager
+
+from fastapi.responses import FileResponse, StreamingResponse
+
+from .models import SpeakRequest  # add SpeakRequest to existing import
+
 
 import chromadb
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
 
 from .deps import get_pipeline, initialise_pipeline
 from .models import (
