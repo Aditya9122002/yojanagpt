@@ -849,7 +849,13 @@ html, body {
 </div><!-- .app -->
 
 <script>
-const API = 'http://localhost:8000';
+const API = (() => {
+  const host = window.location.hostname;
+  if (host.includes('hf.space') || host.includes('huggingface.co')) {
+    return window.location.origin;
+  }
+  return 'http://localhost:8000';
+})();
 
 let currentMode = 'ask';
 let schemeNames  = [];
