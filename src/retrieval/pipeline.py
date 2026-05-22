@@ -6,8 +6,10 @@ Flow for non-English queries:
   2. Translate question → English
   3. Retrieve relevant chunks from ChromaDB (English)
   4. Build prompt with English chunks + original question
-  5. LLM generates answer (in user's language — the prompt instructs this)
-  6. Return answer with source attribution
+  5. LLM generates answer (tries to answer in user's language)
+  6. If detected language is not English/Hindi, translate answer back
+     to user's language using Google Translate as a guaranteed fallback
+  7. Return answer with source attribution
 """
 
 from __future__ import annotations
@@ -16,7 +18,7 @@ import logging
 from dataclasses import dataclass, field
 from typing import List, Optional
 
-from .llm import GeminiClient
+from .llm import GroqClient
 from .prompt import (
     build_prompt,
     build_eligibility_prompt,
@@ -81,7 +83,7 @@ class YojanaRAGPipeline:
             chroma_dir=chroma_dir,
             top_k=top_k,
         )
-        self.llm = GeminiClient(api_key=groq_api_key)
+        self.llm = GroqClient(api_key=groq_api_key)
         self.top_k = top_k
         self.enable_translation = enable_translation
 
@@ -121,6 +123,36 @@ class YojanaRAGPipeline:
             logger.warning("Translation failed, using original: %s", e)
             return question, "en"
 
+    def _translate_answer(self, answer: str, detected_lang: str) -> str:
+        """
+        Translate LLM answer back to user's language if needed.
+
+        The LLM tries to answer in the user's language but often fails
+        for non-Hindi Indian languages (Tamil, Telugu, Kannada etc.).
+        This guarantees the answer is in the correct language by
+        translating back using Google Translate as a fallback.
+
+        Languages where LLM is reliable (skip translation):
+          - English (en)
+          - Hindi (hi) — LLM is strong in Hindi
+
+        All other Indian languages get Google Translate fallback.
+        """
+        # LLM handles these well — skip translation
+        if detected_lang in ("en", "hi"):
+            return answer
+
+        if not self.enable_translation or not self._translator:
+            return answer
+
+        try:
+            translated = self._translator.from_english(answer, target_lang=detected_lang)
+            logger.info("Answer translated to %s", detected_lang)
+            return translated
+        except Exception as e:
+            logger.warning("Answer translation failed, returning original: %s", e)
+            return answer
+
     def _retrieve(self, english_question: str, top_k: Optional[int] = None) -> List[RetrievedChunk]:
         """Retrieve chunks from ChromaDB using an English query."""
         chunks = self.retriever.search(english_question, top_k=top_k or self.top_k)
@@ -135,6 +167,8 @@ class YojanaRAGPipeline:
         english_question: str,
         chunks: List[RetrievedChunk],
     ) -> RAGResponse:
+        # Translate answer back to user's language if needed
+        answer = self._translate_answer(answer, detected_lang)
         return RAGResponse(
             answer=answer,
             question=question,
