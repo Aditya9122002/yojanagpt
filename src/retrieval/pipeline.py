@@ -18,7 +18,7 @@ import logging
 from dataclasses import dataclass, field
 from typing import List, Optional
 
-from .llm import GroqClient
+from .llm import GeminiClient
 from .prompt import (
     build_prompt,
     build_eligibility_prompt,
@@ -83,7 +83,7 @@ class YojanaRAGPipeline:
             chroma_dir=chroma_dir,
             top_k=top_k,
         )
-        self.llm = GroqClient(api_key=groq_api_key)
+        self.llm = GeminiClient(api_key=groq_api_key)
         self.top_k = top_k
         self.enable_translation = enable_translation
 
