@@ -729,99 +729,107 @@ html, body {
     </button>
   </div>
 
-  <!-- ── Chat area ─────────────────────────────────────────────── -->
-  <div class="chat-area" id="chatArea">
+  <!-- ── Per-mode chat panes ─────────────────────────────────────── -->
+  <div class="chat-wrapper">
 
-    <!-- Welcome screen (hidden once chat starts) -->
-    <div class="welcome" id="welcomeScreen">
-      <div class="welcome-icon">🏛️</div>
-      <div class="tricolor">
-        <span style="background:#FF6B35"></span>
-        <span style="background:#f5f5f5"></span>
-        <span style="background:#138808"></span>
+    <!-- ASK pane -->
+    <div class="chat-pane active" id="pane-ask">
+      <div class="welcome" id="welcomeScreen">
+        <div class="welcome-icon">🏛️</div>
+        <div class="tricolor">
+          <span style="background:#FF6B35"></span>
+          <span style="background:#f5f5f5"></span>
+          <span style="background:#138808"></span>
+        </div>
+        <h2>नमस्ते! <span>YojanaGPT</span> में आपका स्वागत है</h2>
+        <p>किसी भी सरकारी योजना के बारे में किसी भी भाषा में पूछें।<br/>Ask about any government scheme in any Indian language.</p>
+        <div class="suggestions" id="suggestionChips">
+          <div class="sug-chip" onclick="useSuggestion('PM Kisan ke liye kaun eligible hai?')">PM Kisan पात्रता</div>
+          <div class="sug-chip" onclick="useSuggestion('What is Ayushman Bharat scheme?')">Ayushman Bharat</div>
+          <div class="sug-chip" onclick="useSuggestion('PM Awas Yojana kya hai?')">PM Awas Yojana</div>
+          <div class="sug-chip" onclick="useSuggestion('Sukanya Samriddhi Yojana ke kya fayde hain?')">Sukanya Samriddhi</div>
+          <div class="sug-chip" onclick="useSuggestion('PMFBY fasal bima kaise milti hai?')">PMFBY बीमा</div>
+          <div class="sug-chip" onclick="useSuggestion('Mudra loan ke liye kaise apply karein?')">Mudra Loan</div>
+        </div>
       </div>
-      <h2>नमस्ते! <span>YojanaGPT</span> में आपका स्वागत है</h2>
-      <p>
-        किसी भी सरकारी योजना के बारे में किसी भी भाषा में पूछें।<br/>
-        Ask about any government scheme in any Indian language.
-      </p>
-      <div class="suggestions" id="suggestionChips">
-        <div class="sug-chip" onclick="useSuggestion('PM Kisan ke liye kaun eligible hai?')">PM Kisan पात्रता</div>
-        <div class="sug-chip" onclick="useSuggestion('What is Ayushman Bharat scheme?')">Ayushman Bharat</div>
-        <div class="sug-chip" onclick="useSuggestion('PM Awas Yojana kya hai?')">PM Awas Yojana</div>
-        <div class="sug-chip" onclick="useSuggestion('Sukanya Samriddhi Yojana ke kya fayde hain?')">Sukanya Samriddhi</div>
-        <div class="sug-chip" onclick="useSuggestion('PMFBY fasal bima kaise milti hai?')">PMFBY बीमा</div>
-        <div class="sug-chip" onclick="useSuggestion('Mudra loan ke liye kaise apply karein?')">Mudra Loan</div>
+      <div class="msg-row bot typing-indicator" id="typing-ask">
+        <div class="msg-avatar bot">🏛️</div>
+        <div class="typing-bubble"><span></span><span></span><span></span></div>
+        <div class="typing-label" id="typingLabel">Searching schemes…</div>
       </div>
     </div>
 
-    <!-- Eligibility form card (shown when mode=eligibility, before asking) -->
-    <div class="elig-form-card" id="eligFormCard" style="display:none;">
-      <h3>✅ अपनी जानकारी भरें · Fill Your Profile</h3>
-      <div class="form-grid">
-        <div class="form-field">
-          <label>आयु / Age</label>
-          <input type="text" id="ef-age" placeholder="e.g. 35"/>
+    <!-- ELIGIBILITY pane -->
+    <div class="chat-pane" id="pane-eligibility">
+      <div class="elig-form-card" id="eligFormCard">
+        <h3>✅ अपनी जानकारी भरें · Fill Your Profile</h3>
+        <div class="form-grid">
+          <div class="form-field"><label>आयु / Age</label><input type="text" id="ef-age" placeholder="e.g. 35"/></div>
+          <div class="form-field"><label>लिंग / Gender</label><input type="text" id="ef-gender" placeholder="Male / Female / अन्य"/></div>
+          <div class="form-field"><label>राज्य / State</label><input type="text" id="ef-state" placeholder="e.g. Maharashtra"/></div>
+          <div class="form-field"><label>जाति / Caste</label><input type="text" id="ef-caste" placeholder="General / OBC / SC / ST"/></div>
+          <div class="form-field"><label>वार्षिक आय / Income ₹</label><input type="text" id="ef-income" placeholder="e.g. 120000"/></div>
+          <div class="form-field"><label>पेशा / Occupation</label><input type="text" id="ef-occupation" placeholder="Farmer / Student / Labour"/></div>
+          <div class="form-field"><label>विकलांगता / Disability</label><input type="text" id="ef-disability" placeholder="Yes / No"/></div>
+          <div class="form-field"><label>BPL कार्ड / BPL Card</label><input type="text" id="ef-bpl" placeholder="Yes / No"/></div>
         </div>
-        <div class="form-field">
-          <label>लिंग / Gender</label>
-          <input type="text" id="ef-gender" placeholder="Male / Female / अन्य"/>
-        </div>
-        <div class="form-field">
-          <label>राज्य / State</label>
-          <input type="text" id="ef-state" placeholder="e.g. Maharashtra"/>
-        </div>
-        <div class="form-field">
-          <label>जाति / Caste</label>
-          <input type="text" id="ef-caste" placeholder="General / OBC / SC / ST"/>
-        </div>
-        <div class="form-field">
-          <label>वार्षिक आय / Income ₹</label>
-          <input type="text" id="ef-income" placeholder="e.g. 120000"/>
-        </div>
-        <div class="form-field">
-          <label>पेशा / Occupation</label>
-          <input type="text" id="ef-occupation" placeholder="Farmer / Student / Labour"/>
-        </div>
-        <div class="form-field">
-          <label>विकलांगता / Disability</label>
-          <input type="text" id="ef-disability" placeholder="Yes / No"/>
-        </div>
-        <div class="form-field">
-          <label>BPL कार्ड / BPL Card</label>
-          <input type="text" id="ef-bpl" placeholder="Yes / No"/>
-        </div>
+        <p style="font-size:0.74rem;color:var(--muted);">🔒 आपका डेटा संग्रहीत नहीं किया जाता · Your data is never stored</p>
       </div>
-      <p style="font-size:0.74rem;color:var(--muted);">
-        🔒 आपका डेटा संग्रहीत नहीं किया जाता · Your data is never stored
-      </p>
-    </div>
-
-    <!-- Compare form card -->
-    <div class="compare-tags-card" id="compareCard" style="display:none;">
-      <h3>⚖️ योजनाएँ चुनें · Select Schemes to Compare</h3>
-      <div class="tags-row" id="tagsRow" onclick="document.getElementById('tagInput').focus()">
-        <input type="text" class="tag-input" id="tagInput"
-          placeholder="Scheme name + Enter (min 2)…"
-          onkeydown="handleTagInput(event)"/>
-      </div>
-      <div class="compare-presets">
-        <button class="preset-btn" onclick="setPreset(['PM Kisan','PMFBY'],'Compare PM Kisan and PMFBY')">PM Kisan vs PMFBY</button>
-        <button class="preset-btn" onclick="setPreset(['PM Awas Gramin','PM Awas Urban'],'Compare rural and urban housing schemes')">Rural vs Urban Housing</button>
-        <button class="preset-btn" onclick="setPreset(['Sukanya Samriddhi','Beti Bachao Beti Padhao'],'Compare Sukanya Samriddhi and Beti Bachao')">Girl child schemes</button>
+      <div class="msg-row bot typing-indicator" id="typing-eligibility">
+        <div class="msg-avatar bot">🏛️</div>
+        <div class="typing-bubble"><span></span><span></span><span></span></div>
+        <div class="typing-label">Checking eligibility…</div>
       </div>
     </div>
 
-    <!-- Typing indicator -->
-    <div class="msg-row bot typing-indicator" id="typingIndicator">
-      <div class="msg-avatar bot">🏛️</div>
-      <div class="typing-bubble">
-        <span></span><span></span><span></span>
+    <!-- DOCUMENTS pane -->
+    <div class="chat-pane" id="pane-documents">
+      <div class="msg-row bot typing-indicator" id="typing-documents">
+        <div class="msg-avatar bot">🏛️</div>
+        <div class="typing-bubble"><span></span><span></span><span></span></div>
+        <div class="typing-label">Extracting document list…</div>
       </div>
-      <div class="typing-label" id="typingLabel">Searching schemes…</div>
     </div>
 
-  </div>
+    <!-- APPLY pane -->
+    <div class="chat-pane" id="pane-apply">
+      <div class="msg-row bot typing-indicator" id="typing-apply">
+        <div class="msg-avatar bot">🏛️</div>
+        <div class="typing-bubble"><span></span><span></span><span></span></div>
+        <div class="typing-label">Building application guide…</div>
+      </div>
+    </div>
+
+    <!-- COMPARE pane -->
+    <div class="chat-pane" id="pane-compare">
+      <div class="compare-tags-card" id="compareCard">
+        <h3>⚖️ योजनाएँ चुनें · Select Schemes to Compare</h3>
+        <div class="tags-row" id="tagsRow" onclick="document.getElementById('tagInput').focus()">
+          <input type="text" class="tag-input" id="tagInput" placeholder="Scheme name + Enter (min 2)…" onkeydown="handleTagInput(event)"/>
+        </div>
+        <div class="compare-presets">
+          <button class="preset-btn" onclick="setPreset(['PM Kisan','PMFBY'],'Compare PM Kisan and PMFBY')">PM Kisan vs PMFBY</button>
+          <button class="preset-btn" onclick="setPreset(['PM Awas Gramin','PM Awas Urban'],'Compare rural and urban housing schemes')">Rural vs Urban Housing</button>
+          <button class="preset-btn" onclick="setPreset(['Sukanya Samriddhi','Beti Bachao Beti Padhao'],'Compare Sukanya Samriddhi and Beti Bachao')">Girl child schemes</button>
+        </div>
+      </div>
+      <div class="msg-row bot typing-indicator" id="typing-compare">
+        <div class="msg-avatar bot">🏛️</div>
+        <div class="typing-bubble"><span></span><span></span><span></span></div>
+        <div class="typing-label">Comparing schemes…</div>
+      </div>
+    </div>
+
+    <!-- CONTACT pane -->
+    <div class="chat-pane" id="pane-contact">
+      <div class="msg-row bot typing-indicator" id="typing-contact">
+        <div class="msg-avatar bot">🏛️</div>
+        <div class="typing-bubble"><span></span><span></span><span></span></div>
+        <div class="typing-label">Looking up contact details…</div>
+      </div>
+    </div>
+
+  </div><!-- .chat-wrapper -->
 
   <!-- ── Error toast ──────────────────────────────────────────── -->
   <div class="error-toast" id="errorToast"></div>
@@ -851,9 +859,7 @@ html, body {
 <script>
 const API = (() => {
   const host = window.location.hostname;
-  if (host.includes('hf.space') || host.includes('huggingface.co')) {
-    return window.location.origin;
-  }
+  if (host.includes('hf.space') || host.includes('huggingface.co')) return window.location.origin;
   return 'http://localhost:8000';
 })();
 
@@ -871,25 +877,16 @@ const modeConfig = {
 };
 
 function setMode(mode) {
-  currentMode = mode;
-
-  // update tab buttons
+  document.querySelectorAll('.chat-pane').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('pane-' + mode).classList.add('active');
   document.querySelector(`[data-mode="${mode}"]`).classList.add('active');
-
-  // show/hide special form cards
-  document.getElementById('eligFormCard').style.display   = mode === 'eligibility' ? 'flex' : 'none';
-  document.getElementById('compareCard').style.display    = mode === 'compare'     ? 'flex' : 'none';
-
-  // update placeholder
+  currentMode = mode;
   document.getElementById('questionInput').placeholder = modeConfig[mode].placeholder;
-
-  // update typing label
   document.getElementById('typingLabel').textContent = modeConfig[mode].typing;
-
-  // update suggestion chips
   updateSuggestions(mode);
-
+  hideError();
+  scrollDown();
   document.getElementById('questionInput').focus();
 }
 
@@ -1093,16 +1090,16 @@ function hideWelcome() {
 }
 
 function showTyping() {
-  document.getElementById('typingIndicator').classList.add('visible');
+  document.getElementById('typing-' + currentMode).classList.add('visible');
 }
 
 function hideTyping() {
-  document.getElementById('typingIndicator').classList.remove('visible');
+  document.getElementById('typing-' + currentMode).classList.remove('visible');
 }
 
 function scrollDown() {
-  const ca = document.getElementById('chatArea');
-  setTimeout(() => { ca.scrollTop = ca.scrollHeight; }, 60);
+  const p = document.getElementById('pane-' + currentMode);
+  setTimeout(() => { p.scrollTop = p.scrollHeight; }, 60);
 }
 
 function showError(msg) {
@@ -1121,8 +1118,8 @@ function now() {
 
 // ── Add messages ─────────────────────────────────────────────────
 function addUserMessage(text) {
-  const ca = document.getElementById('chatArea');
-  const ti = document.getElementById('typingIndicator');
+  const ca = document.getElementById('pane-' + currentMode);
+  const ti = document.getElementById('typing-' + currentMode);
 
   const row = document.createElement('div');
   row.className = 'msg-row user';
@@ -1136,8 +1133,8 @@ function addUserMessage(text) {
 }
 
 function addBotMessage(data) {
-  const ca = document.getElementById('chatArea');
-  const ti = document.getElementById('typingIndicator');
+  const ca = document.getElementById('pane-' + currentMode);
+  const ti = document.getElementById('typing-' + currentMode);
 
   const langLabel = data.language_name || data.detected_language || '';
   const langCode  = data.detected_language || 'en';
