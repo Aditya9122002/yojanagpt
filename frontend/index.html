@@ -6,1308 +6,440 @@
 <title>YojanaGPT — सरकारी योजनाएँ · आपकी भाषा में</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@300;400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Mukta:wght@300;400;500;600;700&family=Baloo+2:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
 <style>
-/* ── Tokens ──────────────────────────────────────────────────── */
 :root {
-  --bg:         #0a0a0a;
-  --bg2:        #111111;
-  --bg3:        #1a1a1a;
-  --bg4:        #222222;
-  --border:     #2a2a2a;
-  --border2:    #333333;
-  --saffron:    #FF6B35;
-  --saffron-dk: #e05a28;
-  --saffron-gl: rgba(255,107,53,0.12);
-  --white:      #f5f5f5;
-  --muted:      #888888;
-  --muted2:     #555555;
-  --green:      #22c55e;
-  --navy:       #4169E1;
-  --radius:     16px;
-  --radius-sm:  10px;
-  --shadow:     0 8px 32px rgba(0,0,0,0.4);
-  --t:          0.2s ease;
-}
-
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-html, body {
-  height: 100%;
-  font-family: 'Noto Sans', 'Noto Sans Devanagari', sans-serif;
-  background: var(--bg);
-  color: var(--white);
-  overflow: hidden;
-}
-
-/* ── Layout ──────────────────────────────────────────────────── */
-.app {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  max-width: 900px;
-  margin: 0 auto;
-}
-
-/* ── Top bar ─────────────────────────────────────────────────── */
-.topbar {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 14px 20px;
-  border-bottom: 1px solid var(--border);
-  background: var(--bg);
-  flex-shrink: 0;
-  position: relative;
-  z-index: 10;
-}
-
-.logo-wrap {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.logo-icon {
-  width: 38px;
-  height: 38px;
-  background: var(--saffron);
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.2rem;
-  flex-shrink: 0;
-}
-
-.logo-text { line-height: 1.15; }
-.logo-text h1 { font-size: 1.1rem; font-weight: 700; letter-spacing: -0.01em; }
-.logo-text span {
-  font-size: 0.70rem;
-  color: var(--muted);
-  font-family: 'Noto Sans Devanagari', sans-serif;
-}
-
-/* status dot */
-.status-bar {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  font-size: 0.72rem;
-  color: var(--green);
-  font-family: 'Space Mono', monospace;
-}
-.status-dot {
-  width: 7px; height: 7px;
-  background: var(--green);
-  border-radius: 50%;
-  animation: pulse 2s infinite;
-}
-@keyframes pulse {
-  0%,100% { opacity: 1; }
-  50%      { opacity: 0.4; }
-}
-
-/* right side of topbar */
-.topbar-right {
-  margin-left: auto;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.chunks-badge {
-  font-family: 'Space Mono', monospace;
-  font-size: 0.68rem;
-  color: var(--muted);
-}
-
-/* language selector */
-.lang-select-wrap {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: var(--bg3);
-  border: 1px solid var(--border2);
-  border-radius: 8px;
-  padding: 5px 10px;
-  font-size: 0.75rem;
-  color: var(--muted);
-  cursor: pointer;
-  transition: border-color var(--t);
-}
-.lang-select-wrap:hover { border-color: var(--saffron); color: var(--white); }
-.lang-select-wrap span { font-weight: 600; color: var(--white); }
-
-/* ── Mode bar ─────────────────────────────────────────────────── */
-.modebar {
-  display: flex;
-  gap: 6px;
-  padding: 10px 20px;
-  border-bottom: 1px solid var(--border);
-  background: var(--bg);
-  overflow-x: auto;
-  flex-shrink: 0;
-  scrollbar-width: none;
-}
-.modebar::-webkit-scrollbar { display: none; }
-
-.mode-btn {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 7px 14px;
-  border: 1px solid var(--border2);
-  border-radius: 100px;
-  background: var(--bg3);
-  color: var(--muted);
-  font-size: 0.78rem;
-  font-weight: 500;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: all var(--t);
-  font-family: 'Noto Sans', sans-serif;
-}
-.mode-btn:hover { border-color: var(--saffron); color: var(--white); }
-.mode-btn.active {
-  background: var(--saffron);
-  border-color: var(--saffron);
-  color: var(--white);
-  font-weight: 600;
-}
-.mode-btn .mi { font-size: 0.9rem; }
-
-/* ── Chat area ───────────────────────────────────────────────── */
-.chat-area {
-  flex: 1;
-  overflow-y: auto;
-  padding: 24px 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  scrollbar-width: thin;
-  scrollbar-color: var(--border2) transparent;
-}
-.chat-area::-webkit-scrollbar { width: 4px; }
-.chat-area::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
-
-/* Welcome screen */
-.welcome {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 20px;
-  min-height: 300px;
-  text-align: center;
-  padding: 20px;
-}
-
-.welcome-icon {
-  width: 64px; height: 64px;
-  background: var(--saffron-gl);
-  border: 1px solid var(--saffron);
-  border-radius: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 2rem;
-}
-
-.welcome h2 {
-  font-size: 1.5rem;
-  font-weight: 700;
-  line-height: 1.3;
-}
-
-.welcome h2 span { color: var(--saffron); }
-
-.welcome p {
-  font-size: 0.88rem;
-  color: var(--muted);
-  max-width: 440px;
-  line-height: 1.6;
-  font-family: 'Noto Sans Devanagari', sans-serif;
-}
-
-/* Tricolor divider */
-.tricolor {
-  display: flex;
-  gap: 6px;
-  align-items: center;
-}
-.tricolor span {
-  height: 3px;
-  width: 32px;
-  border-radius: 2px;
-}
-
-/* Quick suggestion chips */
-.suggestions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  justify-content: center;
-  max-width: 560px;
-}
-
-.sug-chip {
-  background: var(--bg3);
-  border: 1px solid var(--border2);
-  border-radius: 100px;
-  padding: 8px 16px;
-  font-size: 0.80rem;
-  color: var(--white);
-  cursor: pointer;
-  transition: all var(--t);
-  font-family: 'Noto Sans', 'Noto Sans Devanagari', sans-serif;
-}
-.sug-chip:hover { background: var(--saffron-gl); border-color: var(--saffron); color: var(--saffron); }
-
-/* ── Eligibility form (shown inside chat area) ──────────────── */
-.elig-form-card {
-  background: var(--bg3);
-  border: 1px solid var(--border2);
-  border-radius: var(--radius);
-  padding: 20px 22px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.elig-form-card h3 {
-  font-size: 0.88rem;
-  font-weight: 600;
-  color: var(--saffron);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.form-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-
-.form-field { display: flex; flex-direction: column; gap: 4px; }
-
-.form-field label {
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-}
-
-.form-field input {
-  background: var(--bg4);
-  border: 1px solid var(--border2);
-  border-radius: 8px;
-  padding: 9px 12px;
-  color: var(--white);
-  font-size: 0.85rem;
-  font-family: 'Noto Sans', sans-serif;
-  transition: border-color var(--t);
-  width: 100%;
-}
-.form-field input:focus { outline: none; border-color: var(--saffron); }
-.form-field input::placeholder { color: var(--muted2); }
-
-/* ── Compare chips ──────────────────────────────────────────── */
-.compare-tags-card {
-  background: var(--bg3);
-  border: 1px solid var(--border2);
-  border-radius: var(--radius);
-  padding: 16px 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.compare-tags-card h3 {
-  font-size: 0.88rem;
-  font-weight: 600;
-  color: var(--saffron);
-}
-
-.tags-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: center;
-  min-height: 40px;
-}
-
-.scheme-tag {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: var(--saffron-gl);
-  border: 1px solid var(--saffron);
-  border-radius: 100px;
-  padding: 5px 12px;
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: var(--saffron);
-}
-
-.scheme-tag button {
-  background: none;
-  border: none;
-  color: var(--saffron);
-  cursor: pointer;
-  font-size: 1rem;
-  line-height: 1;
-  padding: 0;
-  opacity: 0.7;
-  transition: opacity var(--t);
-}
-.scheme-tag button:hover { opacity: 1; }
-
-.tag-input {
-  background: none;
-  border: none;
-  outline: none;
-  color: var(--white);
-  font-size: 0.85rem;
-  font-family: 'Noto Sans', sans-serif;
-  min-width: 160px;
-}
-.tag-input::placeholder { color: var(--muted2); }
-
-.compare-presets { display: flex; flex-wrap: wrap; gap: 7px; }
-
-.preset-btn {
-  background: var(--bg4);
-  border: 1px solid var(--border2);
-  border-radius: 100px;
-  padding: 5px 12px;
-  font-size: 0.75rem;
-  color: var(--muted);
-  cursor: pointer;
-  transition: all var(--t);
-  font-family: 'Noto Sans', sans-serif;
-}
-.preset-btn:hover { border-color: var(--saffron); color: var(--saffron); }
-
-/* ── Messages ───────────────────────────────────────────────── */
-.msg-row {
-  display: flex;
-  gap: 12px;
-  animation: msgIn 0.25s ease;
-}
-@keyframes msgIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-/* User message — right aligned */
-.msg-row.user { flex-direction: row-reverse; }
-
-.msg-avatar {
-  width: 32px; height: 32px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.9rem;
-  flex-shrink: 0;
-  margin-top: 2px;
-}
-
-.msg-avatar.bot {
-  background: var(--saffron);
-}
-
-.msg-avatar.user-av {
-  background: var(--bg4);
-  border: 1px solid var(--border2);
-}
-
-.msg-bubble {
-  max-width: 72%;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.msg-row.user .msg-bubble { align-items: flex-end; }
-
-.bubble-text {
-  padding: 13px 16px;
-  border-radius: 18px;
-  font-size: 0.90rem;
-  line-height: 1.65;
-  white-space: pre-wrap;
-  word-wrap: break-word;
-}
-
-/* bot bubble */
-.msg-row.bot .bubble-text {
-  background: var(--bg3);
-  border: 1px solid var(--border2);
-  border-top-left-radius: 4px;
-  color: var(--white);
-}
-
-/* user bubble */
-.msg-row.user .bubble-text {
-  background: var(--saffron);
-  color: var(--white);
-  border-top-right-radius: 4px;
-}
-
-.msg-time {
-  font-size: 0.66rem;
-  color: var(--muted2);
-  font-family: 'Space Mono', monospace;
-  padding: 0 4px;
-}
-
-/* sources strip */
-.sources-strip {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  align-items: center;
-  padding: 2px 0;
-}
-
-.sources-label {
-  font-size: 0.68rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--muted2);
-}
-
-.src-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  background: var(--bg4);
-  border: 1px solid var(--border2);
-  border-radius: 100px;
-  padding: 3px 10px;
-  font-size: 0.70rem;
-  font-weight: 600;
-  color: var(--muted);
-  text-decoration: none;
-  transition: all var(--t);
-}
-.src-chip:hover { border-color: var(--saffron); color: var(--saffron); }
-
-/* ── Typing indicator ───────────────────────────────────────── */
-.typing-indicator {
-  display: none;
-  gap: 12px;
-  align-items: center;
-}
-.typing-indicator.visible { display: flex; }
-
-.typing-bubble {
-  background: var(--bg3);
-  border: 1px solid var(--border2);
-  border-radius: 18px;
-  border-top-left-radius: 4px;
-  padding: 13px 16px;
-  display: flex;
-  gap: 5px;
-  align-items: center;
-}
-
-.typing-bubble span {
-  width: 7px; height: 7px;
-  background: var(--muted);
-  border-radius: 50%;
-  animation: typingBounce 1.2s infinite;
-}
-.typing-bubble span:nth-child(2) { animation-delay: 0.2s; }
-.typing-bubble span:nth-child(3) { animation-delay: 0.4s; }
-
-@keyframes typingBounce {
-  0%,60%,100% { transform: translateY(0); opacity: 0.4; }
-  30%          { transform: translateY(-5px); opacity: 1; }
-}
-
-.typing-label {
-  font-size: 0.75rem;
-  color: var(--muted);
-  font-family: 'Space Mono', monospace;
-}
-
-/* ── Bottom input area ──────────────────────────────────────── */
-.input-area {
-  border-top: 1px solid var(--border);
-  background: var(--bg);
-  padding: 14px 20px 18px;
-  flex-shrink: 0;
-}
-
-.input-box {
-  display: flex;
-  gap: 10px;
-  align-items: flex-end;
-  background: var(--bg3);
-  border: 1px solid var(--border2);
-  border-radius: var(--radius);
-  padding: 12px 14px;
-  transition: border-color var(--t), box-shadow var(--t);
-}
-.input-box:focus-within {
-  border-color: var(--saffron);
-  box-shadow: 0 0 0 3px rgba(255,107,53,0.10);
-}
-
-.input-box textarea {
-  flex: 1;
-  background: none;
-  border: none;
-  outline: none;
-  color: var(--white);
-  font-size: 0.92rem;
-  font-family: 'Noto Sans', 'Noto Sans Devanagari', sans-serif;
-  resize: none;
-  max-height: 120px;
-  min-height: 24px;
-  line-height: 1.5;
-}
-.input-box textarea::placeholder { color: var(--muted2); }
-
-.send-btn {
-  width: 38px; height: 38px;
-  background: var(--saffron);
-  border: none;
-  border-radius: 10px;
-  color: var(--white);
-  font-size: 1rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  transition: background var(--t), transform var(--t);
-}
-.send-btn:hover { background: var(--saffron-dk); transform: scale(1.05); }
-.send-btn:active { transform: scale(0.97); }
-.send-btn:disabled { background: var(--bg4); cursor: not-allowed; transform: none; }
-
-/* Mic button */
-.mic-btn {
-  width: 38px; height: 38px;
-  background: var(--bg4);
-  border: 1px solid var(--border2);
-  border-radius: 10px;
-  color: var(--muted);
-  font-size: 1rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  transition: all var(--t);
-}
-.mic-btn:hover { background: var(--bg3); color: var(--white); border-color: var(--saffron); }
-.mic-btn.listening {
-  background: #7f1d1d;
-  border-color: #ef4444;
-  color: #ef4444;
-  animation: micPulse 1s infinite;
-}
-@keyframes micPulse {
-  0%,100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.4); }
-  50%      { box-shadow: 0 0 0 6px rgba(239,68,68,0); }
-}
-
-/* Speaker button on bot messages */
-.speak-btn {
-  background: none;
-  border: 1px solid var(--border2);
-  border-radius: 100px;
-  padding: 3px 10px;
-  font-size: 0.72rem;
-  color: var(--muted);
-  cursor: pointer;
-  transition: all var(--t);
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-family: 'Space Mono', monospace;
-}
-.speak-btn:hover { border-color: var(--saffron); color: var(--saffron); }
-.speak-btn.playing { border-color: var(--green); color: var(--green); }
-
-.input-hint {
-  margin-top: 8px;
-  font-size: 0.68rem;
-  color: var(--muted2);
-  text-align: center;
-  font-family: 'Space Mono', monospace;
-}
-
-/* ── Error toast ────────────────────────────────────────────── */
-.error-toast {
-  display: none;
-  background: #2d1515;
-  border: 1px solid #7f2020;
-  border-radius: 8px;
-  padding: 10px 14px;
-  font-size: 0.82rem;
-  color: #ff6b6b;
-  margin-bottom: 8px;
-}
-.error-toast.visible { display: block; }
-
-/* ── Scrollbar stripe at top ────────────────────────────────── */
-.top-stripe {
-  height: 3px;
-  background: linear-gradient(90deg, #FF6B35 33.3%, #f5f5f5 33.3%, #f5f5f5 66.6%, #138808 66.6%);
-  flex-shrink: 0;
-}
-
-/* ── Responsive ─────────────────────────────────────────────── */
-@media (max-width: 600px) {
-  .topbar { padding: 10px 14px; }
-  .chat-area { padding: 16px 14px; }
-  .input-area { padding: 10px 14px 14px; }
-  .form-grid { grid-template-columns: 1fr; }
-  .msg-bubble { max-width: 86%; }
-  .chunks-badge { display: none; }
-  .modebar { padding: 8px 14px; }
+  --saffron: #E8601C;
+  --saffron-light: #F5884A;
+  --saffron-pale: #FEF0E8;
+  --green-india: #138808;
+  --green-light: #E8F5E2;
+  --navy: #1A3A6B;
+  --navy-light: #EEF2FA;
+  --white: #FFFFFF;
+  --off-white: #FAF9F7;
+  --surface: #F5F3EF;
+  --surface2: #EEECE8;
+  --border: #E0DDD6;
+  --border2: #CBC8C0;
+  --text: #1A1917;
+  --text2: #4A4840;
+  --text3: #807D76;
+  --text4: #B0ADA6;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.10);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.12);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
+  --t: 0.18s ease;
+  --sidebar-w: 280px;
+}
+[data-theme="dark"] {
+  --white: #141414;
+  --off-white: #1A1A1A;
+  --surface: #222222;
+  --surface2: #2A2A2A;
+  --border: #333333;
+  --border2: #444444;
+  --text: #F0EEE8;
+  --text2: #B8B4AC;
+  --text3: #807D76;
+  --text4: #4A4840;
+  --saffron-pale: #2A1A0E;
+  --green-light: #0E1F0C;
+  --navy-light: #0E1525;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.4);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.4);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.5);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'Mukta','Noto Sans Devanagari',sans-serif;background:var(--off-white);color:var(--text);min-height:100vh;overflow:hidden;transition:background var(--t),color var(--t);}
+.tricolor-bar{height:4px;background:linear-gradient(90deg,var(--saffron) 33.33%,var(--white) 33.33%,var(--white) 66.66%,var(--green-india) 66.66%);flex-shrink:0;position:relative;z-index:100;}
+.app-shell{display:flex;flex-direction:column;height:100vh;height:100dvh;}
+.topbar{display:flex;align-items:center;gap:12px;padding:0 20px;height:60px;background:var(--white);border-bottom:1px solid var(--border);flex-shrink:0;z-index:50;}
+.logo-area{display:flex;align-items:center;gap:10px;text-decoration:none;}
+.logo-mark{width:36px;height:36px;background:var(--saffron);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;}
+.logo-text-block h1{font-family:'Baloo 2',sans-serif;font-size:1.15rem;font-weight:700;color:var(--text);line-height:1.1;letter-spacing:-0.02em;}
+.logo-text-block .tagline{font-size:0.68rem;color:var(--text3);font-weight:400;}
+.topbar-center{flex:1;display:flex;justify-content:center;}
+.scheme-counter{display:flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--border);border-radius:100px;padding:5px 14px;font-size:0.72rem;color:var(--text3);font-family:'JetBrains Mono',monospace;}
+.scheme-counter strong{color:var(--saffron);font-weight:600;}
+.topbar-right{display:flex;align-items:center;gap:8px;margin-left:auto;}
+.live-badge{display:flex;align-items:center;gap:6px;font-size:0.70rem;color:var(--green-india);font-weight:600;letter-spacing:0.05em;}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--green-india);animation:livePulse 2s infinite;}
+@keyframes livePulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.5;transform:scale(0.8);}}
+.icon-btn{width:34px;height:34px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--white);color:var(--text2);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all var(--t);}
+.icon-btn:hover{background:var(--surface);color:var(--text);border-color:var(--border2);}
+.main-layout{display:flex;flex:1;overflow:hidden;}
+.sidebar{width:var(--sidebar-w);background:var(--white);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden;transition:width var(--t),transform var(--t);}
+.sidebar-header{padding:16px 16px 10px;font-size:0.65rem;font-weight:700;color:var(--text4);letter-spacing:0.12em;text-transform:uppercase;}
+.nav-section{padding:4px 10px;display:flex;flex-direction:column;gap:2px;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius-sm);cursor:pointer;transition:all var(--t);border:none;background:none;width:100%;text-align:left;color:var(--text2);font-family:'Mukta',sans-serif;font-size:0.88rem;font-weight:500;}
+.nav-item:hover{background:var(--surface);color:var(--text);}
+.nav-item.active{background:var(--saffron-pale);color:var(--saffron);}
+[data-theme="dark"] .nav-item.active{background:#2A1A0E;color:var(--saffron-light);}
+.nav-icon{width:30px;height:30px;border-radius:7px;background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;transition:all var(--t);}
+.nav-item.active .nav-icon{background:var(--saffron);color:white;}
+.nav-text-block{line-height:1.2;}
+.nav-label{display:block;font-size:0.88rem;font-weight:600;}
+.nav-sublabel{display:block;font-size:0.70rem;color:var(--text3);font-weight:400;}
+.nav-item.active .nav-sublabel{color:var(--saffron-light);}
+.sidebar-divider{margin:8px 16px;border:none;border-top:1px solid var(--border);}
+.sidebar-footer{margin-top:auto;padding:12px 16px 16px;}
+.privacy-note{background:var(--green-light);border:1px solid rgba(19,136,8,0.2);border-radius:var(--radius-sm);padding:10px 12px;font-size:0.72rem;color:var(--green-india);line-height:1.4;}
+[data-theme="dark"] .privacy-note{color:#5BC94F;border-color:rgba(91,201,79,0.2);}
+.content-area{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--off-white);}
+.welcome-screen{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;gap:0;overflow-y:auto;}
+.welcome-hero{text-align:center;margin-bottom:32px;}
+.ashoka-ring{width:80px;height:80px;border:3px solid var(--saffron);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:32px;background:var(--saffron-pale);position:relative;}
+.ashoka-ring::before{content:'';position:absolute;inset:5px;border-radius:50%;border:1.5px dashed rgba(232,96,28,0.3);}
+.welcome-greeting{font-family:'Baloo 2',sans-serif;font-size:2rem;font-weight:700;color:var(--text);line-height:1.2;margin-bottom:8px;}
+.welcome-greeting em{color:var(--saffron);font-style:normal;}
+.welcome-subtitle{font-size:0.95rem;color:var(--text3);max-width:480px;line-height:1.65;margin:0 auto;}
+.welcome-subtitle strong{color:var(--text2);font-weight:600;}
+.feature-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:100%;max-width:640px;margin-bottom:28px;}
+.feat-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius-md);padding:16px;cursor:pointer;transition:all var(--t);text-align:left;}
+.feat-card:hover{border-color:var(--saffron);box-shadow:var(--shadow-md);transform:translateY(-2px);}
+.feat-card .feat-icon{font-size:20px;margin-bottom:8px;}
+.feat-card .feat-title{font-size:0.82rem;font-weight:700;color:var(--text);margin-bottom:4px;}
+.feat-card .feat-desc{font-size:0.72rem;color:var(--text3);line-height:1.4;}
+.quick-chips-label{font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.10em;color:var(--text4);margin-bottom:10px;text-align:center;}
+.quick-chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;max-width:580px;}
+.chip{padding:8px 16px;background:var(--white);border:1px solid var(--border);border-radius:100px;font-size:0.80rem;color:var(--text2);cursor:pointer;transition:all var(--t);font-family:'Mukta',sans-serif;font-weight:500;}
+.chip:hover{background:var(--saffron-pale);border-color:var(--saffron);color:var(--saffron);}
+.chat-pane{display:none;flex-direction:column;flex:1;overflow:hidden;}
+.chat-pane.active-pane{display:flex;}
+.chat-messages{flex:1;overflow-y:auto;padding:20px 20px;display:flex;flex-direction:column;gap:18px;scroll-behavior:smooth;scrollbar-width:thin;scrollbar-color:var(--border2) transparent;}
+.chat-messages::-webkit-scrollbar{width:5px;}
+.chat-messages::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px;}
+.msg-row{display:flex;gap:10px;animation:msgIn 0.22s ease;}
+@keyframes msgIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+.msg-row.user{flex-direction:row-reverse;}
+.avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;margin-top:2px;}
+.avatar.bot-av{background:var(--saffron);color:white;font-weight:700;font-size:11px;font-family:'JetBrains Mono',monospace;}
+.avatar.user-av{background:var(--surface2);border:1px solid var(--border);font-size:16px;}
+.bubble{max-width:70%;display:flex;flex-direction:column;gap:6px;}
+.msg-row.user .bubble{align-items:flex-end;}
+.bubble-body{padding:12px 16px;border-radius:var(--radius-lg);font-size:0.90rem;line-height:1.7;white-space:pre-wrap;word-break:break-word;}
+.msg-row.bot .bubble-body{background:var(--white);border:1px solid var(--border);border-top-left-radius:4px;color:var(--text);box-shadow:var(--shadow-sm);}
+.msg-row.user .bubble-body{background:var(--saffron);color:white;border-top-right-radius:4px;}
+.msg-meta{display:flex;align-items:center;gap:8px;padding:0 4px;flex-wrap:wrap;}
+.msg-time{font-size:0.65rem;color:var(--text4);font-family:'JetBrains Mono',monospace;}
+.lang-badge{font-size:0.62rem;background:var(--navy-light);color:var(--navy);border-radius:4px;padding:1px 6px;font-weight:600;letter-spacing:0.05em;}
+[data-theme="dark"] .lang-badge{background:#1A2535;color:#7FA8E8;}
+.speak-btn{font-size:0.68rem;padding:3px 10px;border:1px solid var(--border);border-radius:100px;background:none;color:var(--text3);cursor:pointer;transition:all var(--t);font-family:'JetBrains Mono',monospace;display:inline-flex;align-items:center;gap:4px;}
+.speak-btn:hover{border-color:var(--saffron);color:var(--saffron);}
+.speak-btn.playing{border-color:var(--green-india);color:var(--green-india);}
+.sources-strip{display:flex;flex-wrap:wrap;gap:5px;align-items:center;margin-top:4px;}
+.sources-label{font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text4);}
+.src-chip{font-size:0.68rem;padding:2px 10px;border:1px solid var(--border);border-radius:100px;background:var(--surface);color:var(--text3);text-decoration:none;transition:all var(--t);font-weight:500;}
+.src-chip:hover{border-color:var(--saffron);color:var(--saffron);background:var(--saffron-pale);}
+.typing-row{display:none;gap:10px;align-items:center;}
+.typing-row.visible{display:flex;}
+.typing-body{background:var(--white);border:1px solid var(--border);border-radius:var(--radius-lg);border-top-left-radius:4px;padding:12px 16px;display:flex;align-items:center;gap:6px;box-shadow:var(--shadow-sm);}
+.typing-dot{width:7px;height:7px;border-radius:50%;background:var(--text4);animation:typBounce 1.3s infinite;}
+.typing-dot:nth-child(2){animation-delay:0.18s;}
+.typing-dot:nth-child(3){animation-delay:0.36s;}
+@keyframes typBounce{0%,60%,100%{transform:translateY(0);opacity:0.4;}30%{transform:translateY(-6px);opacity:1;}}
+.typing-text{font-size:0.72rem;color:var(--text3);font-family:'JetBrains Mono',monospace;}
+.form-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px 22px;box-shadow:var(--shadow-sm);}
+.form-card-header{display:flex;align-items:center;gap:10px;margin-bottom:18px;}
+.form-card-icon{width:36px;height:36px;background:var(--saffron-pale);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--saffron);border:1px solid rgba(232,96,28,0.2);}
+.form-card-title{font-weight:700;font-size:0.90rem;color:var(--text);}
+.form-card-subtitle{font-size:0.72rem;color:var(--text3);}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+.form-field{display:flex;flex-direction:column;gap:4px;}
+.form-field label{font-size:0.68rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;}
+.form-field input{border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 12px;color:var(--text);font-size:0.85rem;font-family:'Mukta',sans-serif;background:var(--surface);transition:all var(--t);width:100%;}
+.form-field input:focus{outline:none;border-color:var(--saffron);background:var(--white);box-shadow:0 0 0 3px rgba(232,96,28,0.08);}
+.form-field input::placeholder{color:var(--text4);}
+.compare-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px 20px;box-shadow:var(--shadow-sm);}
+.tags-area{min-height:44px;border:1.5px dashed var(--border2);border-radius:var(--radius-sm);padding:8px 10px;display:flex;flex-wrap:wrap;align-items:center;gap:6px;cursor:text;background:var(--surface);transition:border-color var(--t);margin-bottom:12px;}
+.tags-area:focus-within{border-color:var(--saffron);background:var(--white);}
+.scheme-tag{display:flex;align-items:center;gap:5px;background:var(--saffron-pale);border:1px solid rgba(232,96,28,0.3);border-radius:100px;padding:3px 10px;font-size:0.75rem;font-weight:600;color:var(--saffron);}
+.scheme-tag button{background:none;border:none;cursor:pointer;color:var(--saffron);font-size:14px;padding:0;line-height:1;opacity:0.7;}
+.scheme-tag button:hover{opacity:1;}
+.tag-input{background:none;border:none;outline:none;color:var(--text);font-size:0.85rem;font-family:'Mukta',sans-serif;min-width:150px;}
+.tag-input::placeholder{color:var(--text4);}
+.preset-row{display:flex;flex-wrap:wrap;gap:7px;}
+.preset-btn{background:var(--surface);border:1px solid var(--border);border-radius:100px;padding:5px 13px;font-size:0.74rem;color:var(--text2);cursor:pointer;transition:all var(--t);font-family:'Mukta',sans-serif;}
+.preset-btn:hover{border-color:var(--saffron);color:var(--saffron);background:var(--saffron-pale);}
+.input-area{padding:12px 16px 16px;background:var(--white);border-top:1px solid var(--border);flex-shrink:0;}
+.input-wrapper{display:flex;gap:8px;align-items:flex-end;background:var(--off-white);border:1.5px solid var(--border2);border-radius:var(--radius-xl);padding:10px 12px;transition:all var(--t);}
+.input-wrapper:focus-within{border-color:var(--saffron);background:var(--white);box-shadow:0 0 0 4px rgba(232,96,28,0.08);}
+.input-wrapper textarea{flex:1;background:none;border:none;outline:none;color:var(--text);font-size:0.92rem;font-family:'Mukta','Noto Sans Devanagari',sans-serif;resize:none;min-height:24px;max-height:120px;line-height:1.5;}
+.input-wrapper textarea::placeholder{color:var(--text4);}
+.input-action-btn{width:36px;height:36px;border-radius:50%;border:1px solid var(--border);background:var(--surface);color:var(--text3);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all var(--t);}
+.input-action-btn:hover{background:var(--surface2);border-color:var(--border2);color:var(--text);}
+.input-action-btn.mic.listening{background:#FEE2E2;border-color:#EF4444;color:#EF4444;animation:micPulse 1s infinite;}
+[data-theme="dark"] .input-action-btn.mic.listening{background:#3D1010;border-color:#EF4444;color:#F87171;}
+@keyframes micPulse{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,0.4);}50%{box-shadow:0 0 0 7px rgba(239,68,68,0);}}
+.send-btn{width:36px;height:36px;border-radius:50%;border:none;background:var(--saffron);color:white;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all var(--t);}
+.send-btn:hover{background:#D0531A;transform:scale(1.07);}
+.send-btn:active{transform:scale(0.95);}
+.send-btn:disabled{background:var(--border2);cursor:not-allowed;transform:none;}
+.input-footer{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:8px;font-size:0.66rem;color:var(--text4);font-family:'JetBrains Mono',monospace;}
+.error-toast{margin:0 16px 8px;background:#FEF0F0;border:1px solid #FCA5A5;border-radius:var(--radius-sm);padding:10px 14px;font-size:0.82rem;color:#B91C1C;display:none;}
+[data-theme="dark"] .error-toast{background:#2D1010;border-color:#7F2020;color:#F87171;}
+.error-toast.visible{display:block;}
+.mode-header{padding:12px 20px 0;display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.mode-breadcrumb{font-size:0.72rem;color:var(--text4);font-weight:600;letter-spacing:0.06em;text-transform:uppercase;}
+.mode-breadcrumb strong{color:var(--saffron);}
+.hamburger{display:none;width:34px;height:34px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--white);color:var(--text2);font-size:18px;cursor:pointer;align-items:center;justify-content:center;flex-shrink:0;transition:all var(--t);}
+.hamburger:hover{background:var(--surface);}
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:39;}
+@media(max-width:768px){
+  .sidebar{position:fixed;left:0;top:0;bottom:0;z-index:40;transform:translateX(-100%);box-shadow:var(--shadow-lg);}
+  .sidebar.open{transform:translateX(0);}
+  .sidebar-overlay.open{display:block;}
+  .hamburger{display:flex;}
+  .scheme-counter{display:none;}
+  .topbar-center{display:none;}
+  .feature-cards{grid-template-columns:1fr 1fr;}
+  .form-grid{grid-template-columns:1fr;}
+  .bubble{max-width:88%;}
+  .welcome-greeting{font-size:1.5rem;}
+}
+@media(max-width:480px){
+  .feature-cards{grid-template-columns:1fr;}
+  .topbar{padding:0 12px;}
+  .input-area{padding:10px 12px 14px;}
+  .chat-messages{padding:16px 12px;}
 }
 </style>
 </head>
-<body>
-<div class="app">
-
-  <!-- Tricolor stripe -->
-  <div class="top-stripe"></div>
-
-  <!-- ── Top bar ──────────────────────────────────────────────── -->
+<body data-theme="light">
+<div class="app-shell">
+  <div class="tricolor-bar"></div>
   <div class="topbar">
-    <div class="logo-wrap">
-      <div class="logo-icon">🏛️</div>
-      <div class="logo-text">
+    <button class="hamburger" onclick="toggleSidebar()">☰</button>
+    <div class="logo-area">
+      <div class="logo-mark">🏛</div>
+      <div class="logo-text-block">
         <h1>YojanaGPT</h1>
-        <span>सरकारी योजनाएँ · आपकी भाषा में</span>
+        <span class="tagline">आपकी योजनाओं का साथी</span>
       </div>
     </div>
-
-    <div class="status-bar" style="margin-left:16px;">
-      <div class="status-dot"></div>
-      <span>Ready</span>
+    <div class="topbar-center">
+      <div class="scheme-counter"><strong>4,357</strong> schemes &nbsp;·&nbsp; <strong>22,467</strong> chunks indexed</div>
     </div>
-
     <div class="topbar-right">
-      <div class="chunks-badge">22,467 scheme chunks loaded</div>
-      <div class="lang-select-wrap" title="Language auto-detected from your question">
-        भाषा &nbsp;<span>Auto detect ▾</span>
-      </div>
+      <div class="live-badge"><div class="live-dot"></div>LIVE</div>
+      <button class="icon-btn" onclick="toggleTheme()" id="themeBtn" title="Toggle dark mode">🌙</button>
     </div>
   </div>
-
-  <!-- ── Mode bar ─────────────────────────────────────────────── -->
-  <div class="modebar">
-    <button class="mode-btn active" data-mode="ask" onclick="setMode('ask')">
-      <span class="mi">💬</span> Ask / पूछें
-    </button>
-    <button class="mode-btn" data-mode="eligibility" onclick="setMode('eligibility')">
-      <span class="mi">✅</span> Eligibility / पात्रता
-    </button>
-    <button class="mode-btn" data-mode="documents" onclick="setMode('documents')">
-      <span class="mi">📋</span> Documents / दस्तावेज़
-    </button>
-    <button class="mode-btn" data-mode="apply" onclick="setMode('apply')">
-      <span class="mi">📝</span> How to Apply / आवेदन
-    </button>
-    <button class="mode-btn" data-mode="compare" onclick="setMode('compare')">
-      <span class="mi">⚖️</span> Compare / तुलना
-    </button>
-    <button class="mode-btn" data-mode="contact" onclick="setMode('contact')">
-      <span class="mi">📞</span> Helpline / हेल्पलाइन
-    </button>
-  </div>
-
-  <!-- ── Per-mode chat panes ─────────────────────────────────────── -->
-  <div class="chat-wrapper">
-
-    <!-- ASK pane -->
-    <div class="chat-pane active" id="pane-ask">
-      <div class="welcome" id="welcomeScreen">
-        <div class="welcome-icon">🏛️</div>
-        <div class="tricolor">
-          <span style="background:#FF6B35"></span>
-          <span style="background:#f5f5f5"></span>
-          <span style="background:#138808"></span>
-        </div>
-        <h2>नमस्ते! <span>YojanaGPT</span> में आपका स्वागत है</h2>
-        <p>किसी भी सरकारी योजना के बारे में किसी भी भाषा में पूछें।<br/>Ask about any government scheme in any Indian language.</p>
-        <div class="suggestions" id="suggestionChips">
-          <div class="sug-chip" onclick="useSuggestion('PM Kisan ke liye kaun eligible hai?')">PM Kisan पात्रता</div>
-          <div class="sug-chip" onclick="useSuggestion('What is Ayushman Bharat scheme?')">Ayushman Bharat</div>
-          <div class="sug-chip" onclick="useSuggestion('PM Awas Yojana kya hai?')">PM Awas Yojana</div>
-          <div class="sug-chip" onclick="useSuggestion('Sukanya Samriddhi Yojana ke kya fayde hain?')">Sukanya Samriddhi</div>
-          <div class="sug-chip" onclick="useSuggestion('PMFBY fasal bima kaise milti hai?')">PMFBY बीमा</div>
-          <div class="sug-chip" onclick="useSuggestion('Mudra loan ke liye kaise apply karein?')">Mudra Loan</div>
-        </div>
-      </div>
-      <div class="msg-row bot typing-indicator" id="typing-ask">
-        <div class="msg-avatar bot">🏛️</div>
-        <div class="typing-bubble"><span></span><span></span><span></span></div>
-        <div class="typing-label" id="typingLabel">Searching schemes…</div>
-      </div>
-    </div>
-
-    <!-- ELIGIBILITY pane -->
-    <div class="chat-pane" id="pane-eligibility">
-      <div class="elig-form-card" id="eligFormCard">
-        <h3>✅ अपनी जानकारी भरें · Fill Your Profile</h3>
-        <div class="form-grid">
-          <div class="form-field"><label>आयु / Age</label><input type="text" id="ef-age" placeholder="e.g. 35"/></div>
-          <div class="form-field"><label>लिंग / Gender</label><input type="text" id="ef-gender" placeholder="Male / Female / अन्य"/></div>
-          <div class="form-field"><label>राज्य / State</label><input type="text" id="ef-state" placeholder="e.g. Maharashtra"/></div>
-          <div class="form-field"><label>जाति / Caste</label><input type="text" id="ef-caste" placeholder="General / OBC / SC / ST"/></div>
-          <div class="form-field"><label>वार्षिक आय / Income ₹</label><input type="text" id="ef-income" placeholder="e.g. 120000"/></div>
-          <div class="form-field"><label>पेशा / Occupation</label><input type="text" id="ef-occupation" placeholder="Farmer / Student / Labour"/></div>
-          <div class="form-field"><label>विकलांगता / Disability</label><input type="text" id="ef-disability" placeholder="Yes / No"/></div>
-          <div class="form-field"><label>BPL कार्ड / BPL Card</label><input type="text" id="ef-bpl" placeholder="Yes / No"/></div>
-        </div>
-        <p style="font-size:0.74rem;color:var(--muted);">🔒 आपका डेटा संग्रहीत नहीं किया जाता · Your data is never stored</p>
-      </div>
-      <div class="msg-row bot typing-indicator" id="typing-eligibility">
-        <div class="msg-avatar bot">🏛️</div>
-        <div class="typing-bubble"><span></span><span></span><span></span></div>
-        <div class="typing-label">Checking eligibility…</div>
-      </div>
-    </div>
-
-    <!-- DOCUMENTS pane -->
-    <div class="chat-pane" id="pane-documents">
-      <div class="msg-row bot typing-indicator" id="typing-documents">
-        <div class="msg-avatar bot">🏛️</div>
-        <div class="typing-bubble"><span></span><span></span><span></span></div>
-        <div class="typing-label">Extracting document list…</div>
-      </div>
-    </div>
-
-    <!-- APPLY pane -->
-    <div class="chat-pane" id="pane-apply">
-      <div class="msg-row bot typing-indicator" id="typing-apply">
-        <div class="msg-avatar bot">🏛️</div>
-        <div class="typing-bubble"><span></span><span></span><span></span></div>
-        <div class="typing-label">Building application guide…</div>
-      </div>
-    </div>
-
-    <!-- COMPARE pane -->
-    <div class="chat-pane" id="pane-compare">
-      <div class="compare-tags-card" id="compareCard">
-        <h3>⚖️ योजनाएँ चुनें · Select Schemes to Compare</h3>
-        <div class="tags-row" id="tagsRow" onclick="document.getElementById('tagInput').focus()">
-          <input type="text" class="tag-input" id="tagInput" placeholder="Scheme name + Enter (min 2)…" onkeydown="handleTagInput(event)"/>
-        </div>
-        <div class="compare-presets">
-          <button class="preset-btn" onclick="setPreset(['PM Kisan','PMFBY'],'Compare PM Kisan and PMFBY')">PM Kisan vs PMFBY</button>
-          <button class="preset-btn" onclick="setPreset(['PM Awas Gramin','PM Awas Urban'],'Compare rural and urban housing schemes')">Rural vs Urban Housing</button>
-          <button class="preset-btn" onclick="setPreset(['Sukanya Samriddhi','Beti Bachao Beti Padhao'],'Compare Sukanya Samriddhi and Beti Bachao')">Girl child schemes</button>
-        </div>
-      </div>
-      <div class="msg-row bot typing-indicator" id="typing-compare">
-        <div class="msg-avatar bot">🏛️</div>
-        <div class="typing-bubble"><span></span><span></span><span></span></div>
-        <div class="typing-label">Comparing schemes…</div>
-      </div>
-    </div>
-
-    <!-- CONTACT pane -->
-    <div class="chat-pane" id="pane-contact">
-      <div class="msg-row bot typing-indicator" id="typing-contact">
-        <div class="msg-avatar bot">🏛️</div>
-        <div class="typing-bubble"><span></span><span></span><span></span></div>
-        <div class="typing-label">Looking up contact details…</div>
-      </div>
-    </div>
-
-  </div><!-- .chat-wrapper -->
-
-  <!-- ── Error toast ──────────────────────────────────────────── -->
-  <div class="error-toast" id="errorToast"></div>
-
-  <!-- ── Input area ───────────────────────────────────────────── -->
-  <div class="input-area">
-    <div class="input-box">
-      <button class="mic-btn" id="micBtn" onclick="toggleMic()" title="Voice input (Chrome/Android)">
-        🎤
-      </button>
-      <textarea
-        id="questionInput"
-        rows="1"
-        placeholder="अपना सवाल यहाँ लिखें… / Ask your question…"
-        onkeydown="handleKey(event)"
-        oninput="autoResize(this)"
-      ></textarea>
-      <button class="send-btn" id="sendBtn" onclick="handleSend()" title="Send (Enter)">
-        ➤
-      </button>
-    </div>
-    <div class="input-hint">🎤 Voice input supported · Press Enter to send · 4,600+ schemes available</div>
-  </div>
-
-</div><!-- .app -->
-
-<script>
-const API = (() => {
-  const host = window.location.hostname;
-  if (host.includes('hf.space') || host.includes('huggingface.co')) return window.location.origin;
-  return 'http://localhost:8000';
-})();
-
-let currentMode = 'ask';
-let schemeNames  = [];
-
-// ── Mode switching ──────────────────────────────────────────────
-const modeConfig = {
-  ask:         { placeholder: 'अपना सवाल यहाँ लिखें… / Ask your question…',               typing: 'Searching schemes…'             },
-  eligibility: { placeholder: 'कौन सी योजना जाँचनी है? / Which scheme to check?',          typing: 'Checking eligibility…'          },
-  documents:   { placeholder: 'किस योजना के दस्तावेज़? / Documents for which scheme?',      typing: 'Extracting document list…'      },
-  apply:       { placeholder: 'कैसे आवेदन करें? / How to apply for which scheme?',         typing: 'Building application guide…'    },
-  compare:     { placeholder: 'तुलना के बारे में कुछ और लिखें… / Add comparison note…',    typing: 'Comparing schemes…'             },
-  contact:     { placeholder: 'किस योजना की हेल्पलाइन? / Helpline for which scheme?',      typing: 'Looking up contact details…'    },
-};
-
-function setMode(mode) {
-  document.querySelectorAll('.chat-pane').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('pane-' + mode).classList.add('active');
-  document.querySelector(`[data-mode="${mode}"]`).classList.add('active');
-  currentMode = mode;
-  document.getElementById('questionInput').placeholder = modeConfig[mode].placeholder;
-  document.getElementById('typingLabel').textContent = modeConfig[mode].typing;
-  updateSuggestions(mode);
-  hideError();
-  scrollDown();
-  document.getElementById('questionInput').focus();
-}
-
-function updateSuggestions(mode) {
-  const chips = {
-    ask: [
-      ['PM Kisan ke liye kaun eligible hai?',           'PM Kisan पात्रता'],
-      ['What is Ayushman Bharat?',                       'Ayushman Bharat'],
-      ['PM Awas Yojana kya hai?',                        'PM Awas Yojana'],
-      ['Sukanya Samriddhi ke fayde kya hain?',           'Sukanya Samriddhi'],
-    ],
-    eligibility: [
-      ['Am I eligible for any farmer scheme?',           'Farmer schemes'],
-      ['Kisan hoon, kaunsi schemes milegi?',             'किसान योजनाएँ'],
-      ['What housing schemes can I get?',                'Housing schemes'],
-      ['Beti ke liye koi scheme hai?',                   'बेटी के लिए'],
-    ],
-    documents: [
-      ['Documents for PM Kisan?',                        'PM Kisan docs'],
-      ['Ayushman Bharat ke liye kya chahiye?',           'Ayushman docs'],
-      ['What documents for PM Awas Yojana?',             'PM Awas docs'],
-      ['Mudra loan documents list?',                     'Mudra Loan'],
-    ],
-    apply: [
-      ['How to apply for PM Kisan online?',              'PM Kisan apply'],
-      ['PM Awas Yojana mein apply kaise karein?',        'PM Awas apply'],
-      ['How do I register for Ayushman Bharat?',         'Ayushman register'],
-      ['Steps to get Mudra loan?',                       'Mudra steps'],
-    ],
-    compare: [
-      ['Compare PM Kisan and PMFBY',                     'PM Kisan vs PMFBY'],
-      ['Rural vs Urban PM Awas difference?',             'Awas comparison'],
-    ],
-    contact: [
-      ['PM Kisan helpline number kya hai?',              'PM Kisan helpline'],
-      ['Ayushman Bharat ka toll free number?',           'Ayushman helpline'],
-      ['PMFBY grievance portal?',                        'PMFBY contact'],
-    ],
-  };
-
-  const el = document.getElementById('suggestionChips');
-  if (!el) return;
-  el.innerHTML = (chips[mode] || []).map(([q, label]) =>
-    `<div class="sug-chip" onclick="useSuggestion('${q.replace(/'/g,"\\'")}')">` +
-    `${label}</div>`
-  ).join('');
-}
-
-function useSuggestion(text) {
-  document.getElementById('questionInput').value = text;
-  autoResize(document.getElementById('questionInput'));
-  handleSend();
-}
-
-// ── Auto-resize textarea ────────────────────────────────────────
-function autoResize(el) {
-  el.style.height = 'auto';
-  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
-}
-
-// ── Key handler ─────────────────────────────────────────────────
-function handleKey(e) {
-  if (e.key === 'Enter' && !e.shiftKey) {
-    e.preventDefault();
-    handleSend();
-  }
-}
-
-// ── Main send ───────────────────────────────────────────────────
-async function handleSend() {
-  const input = document.getElementById('questionInput');
-  const question = input.value.trim();
-  if (!question && currentMode !== 'compare') return;
-
-  hideError();
-  hideWelcome();
-
-  // Build display question (for user bubble)
-  let displayQuestion = question;
-  if (currentMode === 'compare' && schemeNames.length >= 2) {
-    displayQuestion = question || `Compare: ${schemeNames.join(' vs ')}`;
-  }
-  if (!displayQuestion) return;
-
-  addUserMessage(displayQuestion);
-  input.value = '';
-  input.style.height = 'auto';
-  showTyping();
-  scrollDown();
-
-  try {
-    let data;
-    switch (currentMode) {
-      case 'ask':
-        data = await callAPI('/ask', { question, top_k: 5 });
-        break;
-
-      case 'eligibility':
-        const profile = getProfile();
-        data = await callAPI('/eligibility', { question, profile, top_k: 5 });
-        break;
-
-      case 'documents':
-        data = await callAPI('/documents', { question, top_k: 5 });
-        break;
-
-      case 'apply':
-        data = await callAPI('/apply', { question, top_k: 5 });
-        break;
-
-      case 'compare':
-        if (schemeNames.length < 2) {
-          showError('कम से कम 2 योजनाएँ चुनें · Add at least 2 scheme names to compare');
-          hideTyping();
-          return;
-        }
-        const cq = question || `Compare ${schemeNames.join(' and ')}`;
-        data = await callAPI('/compare', { question: cq, scheme_names: schemeNames, top_k: 5 });
-        break;
-
-      case 'contact':
-        data = await callAPI('/contact', { question, top_k: 5 });
-        break;
-    }
-    hideTyping();
-    addBotMessage(data);
-  } catch (err) {
-    hideTyping();
-    showError(err.message);
-  }
-
-  scrollDown();
-}
-
-// ── API call ────────────────────────────────────────────────────
-async function callAPI(endpoint, body) {
-  const resp = await fetch(API + endpoint, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-  if (!resp.ok) {
-    const err = await resp.json().catch(() => ({}));
-    throw new Error(err.detail || `HTTP ${resp.status}`);
-  }
-  return resp.json();
-}
-
-// ── Profile collector ───────────────────────────────────────────
-function getProfile() {
-  const fields = ['age','gender','state','caste','income','occupation','disability','bpl'];
-  const profile = {};
-  fields.forEach(f => {
-    const v = document.getElementById('ef-' + f)?.value?.trim();
-    if (v) profile[f] = v;
-  });
-  return profile;
-}
-
-// ── Compare tags ────────────────────────────────────────────────
-function handleTagInput(e) {
-  if (e.key === 'Enter') {
-    e.preventDefault();
-    const val = e.target.value.trim();
-    if (val && !schemeNames.includes(val)) {
-      schemeNames.push(val);
-      renderTags();
-    }
-    e.target.value = '';
-  }
-}
-
-function renderTags() {
-  const row = document.getElementById('tagsRow');
-  const input = document.getElementById('tagInput');
-  row.querySelectorAll('.scheme-tag').forEach(t => t.remove());
-  schemeNames.forEach((name, i) => {
-    const tag = document.createElement('span');
-    tag.className = 'scheme-tag';
-    tag.innerHTML = `${name} <button onclick="removeTag(${i})">×</button>`;
-    row.insertBefore(tag, input);
-  });
-}
-
-function removeTag(i) {
-  schemeNames.splice(i, 1);
-  renderTags();
-}
-
-function setPreset(names, question) {
-  schemeNames = [...names];
-  renderTags();
-  document.getElementById('questionInput').value = question;
-  autoResize(document.getElementById('questionInput'));
-}
-
-// ── DOM helpers ─────────────────────────────────────────────────
-function hideWelcome() {
-  const w = document.getElementById('welcomeScreen');
-  if (w) w.style.display = 'none';
-}
-
-function showTyping() {
-  document.getElementById('typing-' + currentMode).classList.add('visible');
-}
-
-function hideTyping() {
-  document.getElementById('typing-' + currentMode).classList.remove('visible');
-}
-
-function scrollDown() {
-  const p = document.getElementById('pane-' + currentMode);
-  setTimeout(() => { p.scrollTop = p.scrollHeight; }, 60);
-}
-
-function showError(msg) {
-  const el = document.getElementById('errorToast');
-  el.textContent = '⚠️ ' + msg;
-  el.classList.add('visible');
-}
-
-function hideError() {
-  document.getElementById('errorToast').classList.remove('visible');
-}
-
-function now() {
-  return new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
-}
-
-// ── Add messages ─────────────────────────────────────────────────
-function addUserMessage(text) {
-  const ca = document.getElementById('pane-' + currentMode);
-  const ti = document.getElementById('typing-' + currentMode);
-
-  const row = document.createElement('div');
-  row.className = 'msg-row user';
-  row.innerHTML = `
-    <div class="msg-avatar user-av">👤</div>
-    <div class="msg-bubble">
-      <div class="bubble-text">${escHtml(text)}</div>
-      <div class="msg-time">${now()}</div>
-    </div>`;
-  ca.insertBefore(row, ti);
-}
-
-function addBotMessage(data) {
-  const ca = document.getElementById('pane-' + currentMode);
-  const ti = document.getElementById('typing-' + currentMode);
-
-  const langLabel = data.language_name || data.detected_language || '';
-  const langCode  = data.detected_language || 'en';
-
-  // Sources HTML
-  let srcHtml = '';
-  if (data.sources && data.sources.length > 0) {
-    const chips = data.sources.map(s =>
-      `<a class="src-chip" href="${s.source_url || '#'}" target="_blank">📄 ${escHtml(s.scheme_name)}</a>`
-    ).join('');
-    srcHtml = `<div class="sources-strip"><span class="sources-label">Sources</span>${chips}</div>`;
-  }
-
-  const langBadge = langLabel
-    ? `<span style="font-size:.68rem;color:var(--muted);font-family:'Space Mono',monospace;margin-left:6px;">${langLabel.toUpperCase()}</span>`
-    : '';
-
-  // Unique ID for this message's audio
-  const msgId = 'msg-' + Date.now();
-
-  const row = document.createElement('div');
-  row.className = 'msg-row bot';
-  row.innerHTML = `
-    <div class="msg-avatar bot">🏛️</div>
-    <div class="msg-bubble">
-      <div class="bubble-text">${escHtml(data.answer)}</div>
-      ${srcHtml}
-      <div class="msg-time">
-        ${now()}${langBadge}
-        <button class="speak-btn" id="speak-${msgId}"
-          onclick="speakAnswer('${msgId}', ${JSON.stringify(data.answer)}, '${langCode}')"
-          title="Listen to this answer">
-          🔊 Listen
+  <div class="main-layout">
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+    <div class="sidebar" id="sidebar">
+      <div class="sidebar-header">Navigation</div>
+      <div class="nav-section">
+        <button class="nav-item active" data-mode="ask" onclick="setMode('ask')">
+          <div class="nav-icon">💬</div>
+          <div class="nav-text-block"><span class="nav-label">Ask / पूछें</span><span class="nav-sublabel">Any scheme question</span></div>
+        </button>
+        <button class="nav-item" data-mode="eligibility" onclick="setMode('eligibility')">
+          <div class="nav-icon">✅</div>
+          <div class="nav-text-block"><span class="nav-label">Eligibility / पात्रता</span><span class="nav-sublabel">Am I eligible?</span></div>
+        </button>
+        <button class="nav-item" data-mode="documents" onclick="setMode('documents')">
+          <div class="nav-icon">📋</div>
+          <div class="nav-text-block"><span class="nav-label">Documents / दस्तावेज़</span><span class="nav-sublabel">What papers needed?</span></div>
+        </button>
+        <button class="nav-item" data-mode="apply" onclick="setMode('apply')">
+          <div class="nav-icon">📝</div>
+          <div class="nav-text-block"><span class="nav-label">How to Apply / आवेदन</span><span class="nav-sublabel">Step-by-step guide</span></div>
+        </button>
+        <button class="nav-item" data-mode="compare" onclick="setMode('compare')">
+          <div class="nav-icon">⚖️</div>
+          <div class="nav-text-block"><span class="nav-label">Compare / तुलना</span><span class="nav-sublabel">Side-by-side compare</span></div>
+        </button>
+        <button class="nav-item" data-mode="contact" onclick="setMode('contact')">
+          <div class="nav-icon">📞</div>
+          <div class="nav-text-block"><span class="nav-label">Helpline / हेल्पलाइन</span><span class="nav-sublabel">Contact & helplines</span></div>
         </button>
       </div>
-    </div>`;
-  ca.insertBefore(row, ti);
-}
+      <hr class="sidebar-divider"/>
+      <div class="sidebar-footer">
+        <div class="privacy-note">🔒 <strong>Privacy First</strong><br/>आपका डेटा कभी संग्रहीत नहीं।<br/>Your data is never stored or shared.</div>
+      </div>
+    </div>
+    <div class="content-area">
+      <div class="welcome-screen" id="welcomeScreen">
+        <div class="welcome-hero">
+          <div class="ashoka-ring">🏛</div>
+          <div class="welcome-greeting">नमस्ते! मैं <em>YojanaGPT</em> हूँ।</div>
+          <p class="welcome-subtitle">भारत सरकार की <strong>4,357+ योजनाओं</strong> की जानकारी — किसी भी भाषा में।<br/>Ask about any government scheme in any Indian language.</p>
+        </div>
+        <div class="feature-cards">
+          <div class="feat-card" onclick="setMode('ask')"><div class="feat-icon">💬</div><div class="feat-title">कोई भी सवाल</div><div class="feat-desc">Ask anything about any scheme in Hindi, English or any Indian language</div></div>
+          <div class="feat-card" onclick="setMode('eligibility')"><div class="feat-icon">✅</div><div class="feat-title">पात्रता जाँचें</div><div class="feat-desc">Fill your profile and find schemes you qualify for</div></div>
+          <div class="feat-card" onclick="setMode('documents')"><div class="feat-icon">📋</div><div class="feat-title">दस्तावेज़ सूची</div><div class="feat-desc">Get complete document checklist for any scheme</div></div>
+          <div class="feat-card" onclick="setMode('apply')"><div class="feat-icon">📝</div><div class="feat-title">आवेदन गाइड</div><div class="feat-desc">Step-by-step application instructions for any scheme</div></div>
+          <div class="feat-card" onclick="setMode('compare')"><div class="feat-icon">⚖️</div><div class="feat-title">योजना तुलना</div><div class="feat-desc">Compare multiple schemes side by side</div></div>
+          <div class="feat-card" onclick="setMode('contact')"><div class="feat-icon">📞</div><div class="feat-title">हेल्पलाइन</div><div class="feat-desc">Helpline numbers and grievance contacts</div></div>
+        </div>
+        <p class="quick-chips-label">Try asking →</p>
+        <div class="quick-chips">
+          <div class="chip" onclick="quickSend('PM Kisan ke liye kaun eligible hai?')">PM Kisan पात्रता</div>
+          <div class="chip" onclick="quickSend('What is Ayushman Bharat scheme?')">Ayushman Bharat</div>
+          <div class="chip" onclick="quickSend('PM Awas Yojana kya hai?')">PM Awas Yojana</div>
+          <div class="chip" onclick="quickSend('Mudra loan ke liye kaise apply karein?')">Mudra Loan</div>
+          <div class="chip" onclick="quickSend('Sukanya Samriddhi ke kya fayde hain?')">Sukanya Samriddhi</div>
+          <div class="chip" onclick="quickSend('PMFBY fasal bima kaise milti hai?')">PMFBY बीमा</div>
+        </div>
+      </div>
 
-// ── Voice Input (Web Speech API) ────────────────────────────────
-let recognition = null;
-let isListening = false;
+      <!-- ASK -->
+      <div class="chat-pane" id="pane-ask">
+        <div class="mode-header"><span class="mode-breadcrumb">YojanaGPT &rsaquo; <strong>Ask / पूछें</strong></span></div>
+        <div class="chat-messages" id="msgs-ask">
+          <div class="typing-row" id="typing-ask">
+            <div class="avatar bot-av">YG</div>
+            <div class="typing-body"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>
+            <span class="typing-text">Searching schemes…</span>
+          </div>
+        </div>
+      </div>
 
-function toggleMic() {
-  // Check browser support
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SpeechRecognition) {
-    showError('Voice input not supported in this browser. Use Chrome or Edge.');
-    return;
-  }
+      <!-- ELIGIBILITY -->
+      <div class="chat-pane" id="pane-eligibility">
+        <div class="mode-header"><span class="mode-breadcrumb">YojanaGPT &rsaquo; <strong>Eligibility / पात्रता</strong></span></div>
+        <div class="chat-messages" id="msgs-eligibility">
+          <div class="form-card" id="eligFormCard">
+            <div class="form-card-header">
+              <div class="form-card-icon">✅</div>
+              <div><div class="form-card-title">अपनी जानकारी भरें · Fill Your Profile</div><div class="form-card-subtitle">We find schemes that match your profile</div></div>
+            </div>
+            <div class="form-grid">
+              <div class="form-field"><label>आयु / Age</label><input type="text" id="ef-age" placeholder="e.g. 35"/></div>
+              <div class="form-field"><label>लिंग / Gender</label><input type="text" id="ef-gender" placeholder="Male / Female / Other"/></div>
+              <div class="form-field"><label>राज्य / State</label><input type="text" id="ef-state" placeholder="e.g. Maharashtra"/></div>
+              <div class="form-field"><label>जाति / Caste</label><input type="text" id="ef-caste" placeholder="General / OBC / SC / ST"/></div>
+              <div class="form-field"><label>वार्षिक आय / Annual Income ₹</label><input type="text" id="ef-income" placeholder="e.g. 1,20,000"/></div>
+              <div class="form-field"><label>पेशा / Occupation</label><input type="text" id="ef-occupation" placeholder="Farmer / Student / Labour"/></div>
+              <div class="form-field"><label>विकलांगता / Disability</label><input type="text" id="ef-disability" placeholder="Yes / No"/></div>
+              <div class="form-field"><label>BPL कार्ड</label><input type="text" id="ef-bpl" placeholder="Yes / No"/></div>
+            </div>
+          </div>
+          <div class="typing-row" id="typing-eligibility">
+            <div class="avatar bot-av">YG</div>
+            <div class="typing-body"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>
+            <span class="typing-text">Checking eligibility…</span>
+          </div>
+        </div>
+      </div>
 
-  if (isListening) {
-    recognition.stop();
-    return;
-  }
+      <!-- DOCUMENTS -->
+      <div class="chat-pane" id="pane-documents">
+        <div class="mode-header"><span class="mode-breadcrumb">YojanaGPT &rsaquo; <strong>Documents / दस्तावेज़</strong></span></div>
+        <div class="chat-messages" id="msgs-documents">
+          <div class="typing-row" id="typing-documents">
+            <div class="avatar bot-av">YG</div>
+            <div class="typing-body"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>
+            <span class="typing-text">Extracting document list…</span>
+          </div>
+        </div>
+      </div>
 
-  recognition = new SpeechRecognition();
-  recognition.continuous = false;
-  recognition.interimResults = true;
+      <!-- APPLY -->
+      <div class="chat-pane" id="pane-apply">
+        <div class="mode-header"><span class="mode-breadcrumb">YojanaGPT &rsaquo; <strong>How to Apply / आवेदन</strong></span></div>
+        <div class="chat-messages" id="msgs-apply">
+          <div class="typing-row" id="typing-apply">
+            <div class="avatar bot-av">YG</div>
+            <div class="typing-body"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>
+            <span class="typing-text">Building application guide…</span>
+          </div>
+        </div>
+      </div>
 
-  // Use current mode's language hint
-  // Default to Hindi + English multilingual
-  recognition.lang = 'hi-IN';
+      <!-- COMPARE -->
+      <div class="chat-pane" id="pane-compare">
+        <div class="mode-header"><span class="mode-breadcrumb">YojanaGPT &rsaquo; <strong>Compare / तुलना</strong></span></div>
+        <div class="chat-messages" id="msgs-compare">
+          <div class="compare-card" id="compareCard">
+            <div class="form-card-header" style="margin-bottom:12px;">
+              <div class="form-card-icon">⚖️</div>
+              <div><div class="form-card-title">योजनाएँ चुनें · Select Schemes to Compare</div><div class="form-card-subtitle">Add at least 2 scheme names</div></div>
+            </div>
+            <div class="tags-area" id="tagsArea" onclick="document.getElementById('tagInput').focus()">
+              <input class="tag-input" id="tagInput" placeholder="Type scheme name + Enter…" onkeydown="handleTagKey(event)"/>
+            </div>
+            <div class="preset-row">
+              <button class="preset-btn" onclick="setPreset(['PM Kisan','PMFBY'],'Compare PM Kisan and PMFBY')">PM Kisan vs PMFBY</button>
+              <button class="preset-btn" onclick="setPreset(['PM Awas Gramin','PM Awas Urban'],'Compare rural and urban housing')">Rural vs Urban Housing</button>
+              <button class="preset-btn" onclick="setPreset(['Sukanya Samriddhi','Beti Bachao Beti Padhao'],'Compare girl child schemes')">Girl Child Schemes</button>
+            </div>
+          </div>
+          <div class="typing-row" id="typing-compare">
+            <div class="avatar bot-av">YG</div>
+            <div class="typing-body"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>
+            <span class="typing-text">Comparing schemes…</span>
+          </div>
+        </div>
+      </div>
 
-  const micBtn = document.getElementById('micBtn');
-  const input  = document.getElementById('questionInput');
+      <!-- CONTACT -->
+      <div class="chat-pane" id="pane-contact">
+        <div class="mode-header"><span class="mode-breadcrumb">YojanaGPT &rsaquo; <strong>Helpline / हेल्पलाइन</strong></span></div>
+        <div class="chat-messages" id="msgs-contact">
+          <div class="typing-row" id="typing-contact">
+            <div class="avatar bot-av">YG</div>
+            <div class="typing-body"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>
+            <span class="typing-text">Looking up contacts…</span>
+          </div>
+        </div>
+      </div>
 
-  recognition.onstart = () => {
-    isListening = true;
-    micBtn.classList.add('listening');
-    micBtn.textContent = '⏹';
-    micBtn.title = 'Stop listening';
-    input.placeholder = 'सुन रहा हूँ… / Listening…';
-  };
+      <div class="error-toast" id="errorToast"></div>
 
-  recognition.onresult = (e) => {
-    let transcript = '';
-    for (let i = e.resultIndex; i < e.results.length; i++) {
-      transcript += e.results[i][0].transcript;
-    }
-    input.value = transcript;
-    autoResize(input);
-  };
-
-  recognition.onend = () => {
-    isListening = false;
-    micBtn.classList.remove('listening');
-    micBtn.textContent = '🎤';
-    micBtn.title = 'Voice input';
-    input.placeholder = 'अपना सवाल यहाँ लिखें… / Ask your question…';
-
-    // Auto-send if something was captured
-    if (input.value.trim()) {
-      setTimeout(() => handleSend(), 400);
-    }
-  };
-
-  recognition.onerror = (e) => {
-    isListening = false;
-    micBtn.classList.remove('listening');
-    micBtn.textContent = '🎤';
-    if (e.error === 'no-speech') {
-      showError('No speech detected. Please try again.');
-    } else if (e.error === 'not-allowed') {
-      showError('Microphone access denied. Please allow mic access in browser settings.');
-    } else {
-      showError('Voice input error: ' + e.error);
-    }
-  };
-
-  recognition.start();
-}
-
-// ── Voice Output (gTTS via /speak endpoint) ─────────────────────
-let currentAudio = null;
-
-async function speakAnswer(msgId, text, langCode) {
-  const btn = document.getElementById('speak-' + msgId);
-
-  // Stop if already playing
-  if (currentAudio && !currentAudio.paused) {
-    currentAudio.pause();
-    currentAudio = null;
-    document.querySelectorAll('.speak-btn').forEach(b => {
-      b.classList.remove('playing');
-      b.textContent = '🔊 Listen';
-    });
-    return;
-  }
-
-  btn.textContent = '⏳ Loading…';
-  btn.disabled = true;
-
-  try {
-    const resp = await fetch(API + '/speak', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text, lang_code: langCode }),
-    });
-
-    if (!resp.ok) throw new Error('TTS failed');
-
-    const blob = await resp.blob();
-    const url  = URL.createObjectURL(blob);
-
-    currentAudio = new Audio(url);
-    currentAudio.play();
-
-    btn.textContent = '⏹ Stop';
-    btn.classList.add('playing');
-    btn.disabled = false;
-
-    currentAudio.onended = () => {
-      btn.textContent = '🔊 Listen';
-      btn.classList.remove('playing');
-      URL.revokeObjectURL(url);
-      currentAudio = null;
-    };
-
-  } catch (e) {
-    btn.textContent = '🔊 Listen';
-    btn.disabled = false;
-    showError('Could not load audio. Check your connection.');
-  }
-}
-
-function escHtml(str) {
-  return String(str)
-    .replace(/&/g,'&amp;')
-    .replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;')
-    .replace(/"/g,'&quot;');
-}
+      <div class="input-area">
+        <div class="input-wrapper">
+          <button class="input-action-btn mic" id="micBtn" onclick="toggleMic()" title="Voice input">🎤</button>
+          <textarea id="questionInput" rows="1" placeholder="अपना सवाल यहाँ लिखें… / Ask your question…" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+          <button class="send-btn" id="sendBtn" onclick="handleSend()">➤</button>
+        </div>
+        <div class="input-footer">
+          <span>🎤 Voice supported</span>&nbsp;·&nbsp;<span>Enter to send</span>&nbsp;·&nbsp;<span>22 Indian languages</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+const API=(()=>{const h=window.location.hostname;if(h.includes('hf.space')||h.includes('huggingface.co'))return window.location.origin;return 'http://localhost:8000';})();
+let currentMode=null,schemeNames=[];
+const modeConfig={ask:{placeholder:'अपना सवाल यहाँ लिखें… / Ask your question…',typing:'Searching 4,357 schemes…'},eligibility:{placeholder:'कौन सी योजना जाँचनी है? / Which scheme to check?',typing:'Checking eligibility…'},documents:{placeholder:'किस योजना के दस्तावेज़? / Documents for which scheme?',typing:'Extracting document list…'},apply:{placeholder:'कैसे आवेदन करें? / How to apply for which scheme?',typing:'Building guide…'},compare:{placeholder:'तुलना नोट… / Comparison note…',typing:'Comparing schemes…'},contact:{placeholder:'किस योजना की हेल्पलाइन? / Helpline for which scheme?',typing:'Looking up contacts…'}};
+function setMode(mode){document.getElementById('welcomeScreen').style.display='none';document.querySelectorAll('.chat-pane').forEach(p=>p.classList.remove('active-pane'));document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));document.getElementById('pane-'+mode).classList.add('active-pane');document.querySelector('[data-mode="'+mode+'"]').classList.add('active');currentMode=mode;document.getElementById('questionInput').placeholder=modeConfig[mode].placeholder;hideError();scrollDown();document.getElementById('questionInput').focus();if(window.innerWidth<=768)closeSidebar();}
+function quickSend(text){if(!currentMode)setMode('ask');document.getElementById('questionInput').value=text;autoResize(document.getElementById('questionInput'));handleSend();}
+function autoResize(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,120)+'px';}
+function handleKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();handleSend();}}
+async function handleSend(){if(!currentMode)setMode('ask');const input=document.getElementById('questionInput');const question=input.value.trim();if(!question&&currentMode!=='compare')return;hideError();let displayQ=question;if(currentMode==='compare'&&schemeNames.length>=2)displayQ=question||'Compare: '+schemeNames.join(' vs ');if(!displayQ)return;addUserMsg(displayQ);input.value='';input.style.height='auto';showTyping();scrollDown();try{let data;switch(currentMode){case 'ask':data=await callAPI('/ask',{question,top_k:5});break;case 'eligibility':data=await callAPI('/eligibility',{question,profile:getProfile(),top_k:5});break;case 'documents':data=await callAPI('/documents',{question,top_k:5});break;case 'apply':data=await callAPI('/apply',{question,top_k:5});break;case 'compare':if(schemeNames.length<2){showError('कम से कम 2 योजनाएँ चुनें · Add at least 2 schemes');hideTyping();return;}data=await callAPI('/compare',{question:question||'Compare '+schemeNames.join(' and '),scheme_names:schemeNames,top_k:5});break;case 'contact':data=await callAPI('/contact',{question,top_k:5});break;}hideTyping();addBotMsg(data);}catch(err){hideTyping();showError(err.message);}scrollDown();}
+async function callAPI(endpoint,body){const r=await fetch(API+endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(e.detail||'HTTP '+r.status);}return r.json();}
+function getProfile(){const f={};['age','gender','state','caste','income','occupation','disability','bpl'].forEach(k=>{const v=document.getElementById('ef-'+k)?.value?.trim();if(v)f[k]=v;});return f;}
+function handleTagKey(e){if(e.key==='Enter'){e.preventDefault();const v=e.target.value.trim();if(v&&!schemeNames.includes(v)){schemeNames.push(v);renderTags();}e.target.value='';}}
+function renderTags(){const area=document.getElementById('tagsArea');const inp=document.getElementById('tagInput');area.querySelectorAll('.scheme-tag').forEach(t=>t.remove());schemeNames.forEach((n,i)=>{const t=document.createElement('span');t.className='scheme-tag';t.innerHTML=n+' <button onclick="removeTag('+i+')">×</button>';area.insertBefore(t,inp);});}
+function removeTag(i){schemeNames.splice(i,1);renderTags();}
+function setPreset(names,q){schemeNames=[...names];renderTags();document.getElementById('questionInput').value=q;autoResize(document.getElementById('questionInput'));}
+function showTyping(){document.getElementById('typing-'+currentMode).classList.add('visible');}
+function hideTyping(){document.getElementById('typing-'+currentMode).classList.remove('visible');}
+function scrollDown(){const msgs=document.getElementById('msgs-'+currentMode);if(msgs)setTimeout(()=>{msgs.scrollTop=msgs.scrollHeight;},80);}
+function showError(msg){const t=document.getElementById('errorToast');t.textContent='⚠️ '+msg;t.classList.add('visible');}
+function hideError(){document.getElementById('errorToast').classList.remove('visible');}
+function ts(){return new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});}
+function addUserMsg(text){const area=document.getElementById('msgs-'+currentMode);const typing=document.getElementById('typing-'+currentMode);const row=document.createElement('div');row.className='msg-row user';row.innerHTML='<div class="avatar user-av">👤</div><div class="bubble"><div class="bubble-body">'+escHtml(text)+'</div><div class="msg-meta"><span class="msg-time">'+ts()+'</span></div></div>';area.insertBefore(row,typing);}
+function addBotMsg(data){const area=document.getElementById('msgs-'+currentMode);const typing=document.getElementById('typing-'+currentMode);const msgId='msg-'+Date.now();const lang=data.detected_language||'en';const langName=data.language_name||'';let srcs='';if(data.sources&&data.sources.length){srcs='<div class="sources-strip"><span class="sources-label">Sources</span>'+data.sources.map(s=>'<a class="src-chip" href="'+(s.source_url||'#')+'" target="_blank">📄 '+escHtml(s.scheme_name)+'</a>').join('')+'</div>';}const langBadge=langName?'<span class="lang-badge">'+langName.toUpperCase()+'</span>':'';const row=document.createElement('div');row.className='msg-row bot';row.innerHTML='<div class="avatar bot-av">YG</div><div class="bubble"><div class="bubble-body">'+escHtml(data.answer)+'</div>'+srcs+'<div class="msg-meta"><span class="msg-time">'+ts()+'</span>'+langBadge+'<button class="speak-btn" id="speak-'+msgId+'" onclick="speakAnswer(\''+msgId+'\', '+JSON.stringify(data.answer)+', \''+lang+'\')">🔊 Listen</button></div></div>';area.insertBefore(row,typing);}
+let recognition=null,isListening=false;
+function toggleMic(){const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){showError('Voice input not supported. Use Chrome or Edge.');return;}if(isListening){recognition.stop();return;}recognition=new SR();recognition.continuous=false;recognition.interimResults=true;recognition.lang='hi-IN';const btn=document.getElementById('micBtn');const inp=document.getElementById('questionInput');recognition.onstart=()=>{isListening=true;btn.classList.add('listening');btn.textContent='⏹';inp.placeholder='सुन रहा हूँ… / Listening…';};recognition.onresult=(e)=>{let t='';for(let i=e.resultIndex;i<e.results.length;i++)t+=e.results[i][0].transcript;inp.value=t;autoResize(inp);};recognition.onend=()=>{isListening=false;btn.classList.remove('listening');btn.textContent='🎤';inp.placeholder=modeConfig[currentMode]?.placeholder||'Ask your question…';if(inp.value.trim())setTimeout(()=>handleSend(),400);};recognition.onerror=(e)=>{isListening=false;btn.classList.remove('listening');btn.textContent='🎤';if(e.error==='no-speech')showError('No speech detected. Try again.');else if(e.error==='not-allowed')showError('Microphone access denied.');else showError('Voice error: '+e.error);};recognition.start();}
+let currentAudio=null;
+async function speakAnswer(msgId,text,lang){const btn=document.getElementById('speak-'+msgId);if(currentAudio&&!currentAudio.paused){currentAudio.pause();currentAudio=null;document.querySelectorAll('.speak-btn').forEach(b=>{b.classList.remove('playing');b.textContent='🔊 Listen';});return;}btn.textContent='⏳ Loading…';btn.disabled=true;try{const r=await fetch(API+'/speak',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,lang_code:lang})});if(!r.ok)throw new Error('TTS failed');const blob=await r.blob();const url=URL.createObjectURL(blob);currentAudio=new Audio(url);currentAudio.play();btn.textContent='⏹ Stop';btn.classList.add('playing');btn.disabled=false;currentAudio.onended=()=>{btn.textContent='🔊 Listen';btn.classList.remove('playing');URL.revokeObjectURL(url);currentAudio=null;};}catch(e){btn.textContent='🔊 Listen';btn.disabled=false;showError('Audio error. Check connection.');}}
+function toggleTheme(){const body=document.body;const isDark=body.getAttribute('data-theme')==='dark';body.setAttribute('data-theme',isDark?'light':'dark');document.getElementById('themeBtn').textContent=isDark?'🌙':'☀️';}
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebarOverlay').classList.toggle('open');}
+function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('sidebarOverlay').classList.remove('open');}
+function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 </script>
 </body>
 </html>
