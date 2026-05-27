@@ -29,7 +29,7 @@ short_description: AI assistant for Indian government schemes in 22 languages
 *किसी भी सरकारी योजना के बारे में किसी भी भाषा में पूछें*
 *Ask about any government scheme in any Indian language — for free, with zero personal data required*
 
-[🚀 Live Demo](https://adi12340-yojanagpt.hf.space/ui) · [📖 API Docs](http://localhost:8000/docs) · [🐛 Report Bug](https://github.com/Aditya9122002/yojanagpt/issues) · [💡 Request Feature](https://github.com/Aditya9122002/yojanagpt/issues)
+[🚀 Live Demo](https://aditya9122002.github.io/yojanagpt/) · [📖 API Docs](http://localhost:8000/docs) · [🐛 Report Bug](https://github.com/Aditya9122002/yojanagpt/issues) · [💡 Request Feature](https://github.com/Aditya9122002/yojanagpt/issues)
 
 </div>
 
