@@ -1,0 +1,1362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>YojanaGPT - AI Assistant for Government Schemes</title>
+  <meta name="description" content="YojanaGPT helps citizens discover, compare, and apply for Indian government schemes in 22 languages." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500;1,600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --saffron: #E8601C;
+      --green: #138808;
+      --ink: #111827;
+      --muted: #4B5563;
+      --bg: #FFFDF9;
+      --card: #FFFFFF;
+      --border: #F0E5D8;
+      --shadow: 0 10px 30px rgba(232, 96, 28, 0.08);
+      --radius: 20px;
+      --nav-height: 78px;
+      --trust-bar-height: 38px;
+      --tricolor-height: 9px;
+      --header-total: calc(var(--tricolor-height) + var(--trust-bar-height) + var(--nav-height));
+      --container: 1160px;
+      --dark: #1A1917;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: "Mukta", sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+      line-height: 1.6;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    .bg-blobs {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .bg-blobs span {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(60px);
+      opacity: 0.08;
+    }
+
+    .bg-blobs .blob-saffron-1 {
+      width: 420px;
+      height: 420px;
+      background: var(--saffron);
+      top: 8%;
+      left: -8%;
+      animation: blobDrift1 22s ease-in-out infinite alternate;
+    }
+
+    .bg-blobs .blob-saffron-2 {
+      width: 360px;
+      height: 360px;
+      background: var(--saffron);
+      bottom: 12%;
+      right: 10%;
+      animation: blobDrift2 26s ease-in-out infinite alternate;
+    }
+
+    .bg-blobs .blob-green-1 {
+      width: 480px;
+      height: 480px;
+      background: var(--green);
+      top: 42%;
+      right: -12%;
+      animation: blobDrift3 24s ease-in-out infinite alternate;
+    }
+
+    .bg-blobs .blob-green-2 {
+      width: 300px;
+      height: 300px;
+      background: var(--green);
+      bottom: 28%;
+      left: 18%;
+      animation: blobDrift4 20s ease-in-out infinite alternate;
+    }
+
+    h1, h2, h3, h4, h5 {
+      font-family: "Playfair Display", Georgia, "Times New Roman", serif;
+      line-height: 1.2;
+      letter-spacing: 0.01em;
+    }
+
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .container {
+      width: min(100% - 2rem, var(--container));
+      margin-inline: auto;
+    }
+
+    .tricolor {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      z-index: 1000;
+      height: 9px;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+    }
+
+    .tricolor span:nth-child(1) { background: var(--saffron); }
+    .tricolor span:nth-child(2) { background: #ffffff; border-top: 1px solid #ececec; border-bottom: 1px solid #ececec; }
+    .tricolor span:nth-child(3) { background: var(--green); }
+
+    .trust-bar {
+      position: fixed;
+      top: var(--tricolor-height);
+      left: 0;
+      width: 100%;
+      z-index: 998;
+      height: var(--trust-bar-height);
+      background: rgba(255, 253, 249, 0.96);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+    }
+
+    .trust-bar-inner {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.65rem;
+      flex-wrap: wrap;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--muted);
+    }
+
+    .trust-bar-inner .sep {
+      color: #d1d5db;
+      font-weight: 400;
+    }
+
+    .trust-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      white-space: nowrap;
+    }
+
+    .navbar {
+      position: fixed;
+      top: calc(var(--tricolor-height) + var(--trust-bar-height));
+      width: 100%;
+      z-index: 999;
+      transition: background 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease;
+      border-bottom: 1px solid transparent;
+    }
+
+    .navbar.scrolled {
+      background: #ffffff;
+      box-shadow: 0 4px 20px rgba(17, 24, 39, 0.1);
+      border-bottom-color: rgba(0, 0, 0, 0.06);
+    }
+
+    .nav-inner {
+      height: var(--nav-height);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .logo {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-weight: 700;
+      font-size: 1.3rem;
+      font-family: "Mukta", sans-serif;
+    }
+
+    .logo img {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      object-fit: cover;
+      box-shadow: 0 4px 14px rgba(232, 96, 28, 0.2);
+      flex-shrink: 0;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1.4rem;
+      list-style: none;
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 1rem;
+    }
+
+    .nav-links a {
+      transition: color 0.2s ease;
+    }
+
+    .nav-links a:hover {
+      color: var(--saffron);
+    }
+
+    .btn {
+      border: 0;
+      cursor: pointer;
+      font-family: "Mukta", sans-serif;
+      font-weight: 700;
+      border-radius: 999px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      white-space: nowrap;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #f1763a, var(--saffron));
+      color: #fff;
+      padding: 0.8rem 1.35rem;
+      box-shadow: 0 8px 24px rgba(232, 96, 28, 0.35);
+      animation: pulseGlow 2.6s ease-in-out infinite;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 28px rgba(232, 96, 28, 0.42);
+    }
+
+    .btn-secondary {
+      background: #fff;
+      color: var(--ink);
+      border: 1px solid var(--border);
+      padding: 0.78rem 1.25rem;
+    }
+
+    .btn-secondary:hover {
+      border-color: #f4c8af;
+      transform: translateY(-2px);
+    }
+
+    .hero {
+      position: relative;
+      padding-top: calc(var(--header-total) + 3rem);
+      padding-bottom: 3.5rem;
+      overflow: clip;
+    }
+
+    .hero-blob {
+      position: absolute;
+      top: 6%;
+      left: 52%;
+      width: 560px;
+      height: 560px;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 40% 35%, rgba(232, 96, 28, 0.2), transparent 58%),
+        radial-gradient(circle at 70% 65%, rgba(232, 96, 28, 0.1), transparent 62%);
+      filter: blur(20px);
+      animation: blobFloat 16s ease-in-out infinite alternate;
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: clamp(2rem, 4vw, 4rem);
+      align-items: center;
+      min-height: min(520px, 70vh);
+    }
+
+    .hero-content h1 {
+      font-size: clamp(2rem, 3.8vw, 3.35rem);
+      margin-bottom: 0.75rem;
+      max-width: none;
+      line-height: 1.2;
+    }
+
+    .reveal-word {
+      display: inline-block;
+      opacity: 0;
+      transform: translateY(22px);
+      animation: wordReveal 0.65s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+      margin-right: 0.28em;
+    }
+
+    .headline-accent {
+      color: var(--saffron);
+    }
+
+    .hero-tagline-hi {
+      font-size: clamp(1.15rem, 2vw, 1.45rem);
+      color: var(--green);
+      font-weight: 700;
+      margin-bottom: 1.25rem;
+      animation: heroFadeIn 0.9s ease 0.15s forwards;
+      opacity: 0;
+    }
+
+    .hero-content > p:not(.hero-tagline-hi) {
+      color: var(--muted);
+      font-size: clamp(1rem, 1.5vw, 1.15rem);
+      max-width: 52ch;
+      margin-bottom: 1.8rem;
+      animation: heroFadeIn 0.9s ease 0.25s forwards;
+      opacity: 0;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.8rem;
+      animation: heroFadeIn 0.9s ease 0.35s forwards;
+      opacity: 0;
+    }
+
+    .hero-visual {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      animation: heroFadeIn 1s ease 0.2s forwards;
+      opacity: 0;
+    }
+
+    .phone-mockup {
+      width: min(100%, 300px);
+      background: linear-gradient(160deg, #1a1a1a 0%, #2d2d2d 100%);
+      border-radius: 36px;
+      padding: 12px;
+      box-shadow:
+        0 30px 60px rgba(17, 24, 39, 0.2),
+        0 12px 24px rgba(232, 96, 28, 0.14),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+      animation: phoneFloat 3s ease-in-out infinite;
+      transform: rotate(-3deg) translateY(0);
+    }
+
+    .phone-notch {
+      width: 90px;
+      height: 22px;
+      background: #111;
+      border-radius: 0 0 14px 14px;
+      margin: 0 auto 8px;
+    }
+
+    .phone-screen {
+      background: #fafafa;
+      border-radius: 26px;
+      overflow: hidden;
+      min-height: 380px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .phone-header {
+      background: linear-gradient(135deg, var(--saffron), #f2864f);
+      color: #fff;
+      padding: 0.85rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-weight: 700;
+      font-size: 0.9rem;
+    }
+
+    .phone-header-icon {
+      width: 28px;
+      height: 28px;
+      background: rgba(255, 255, 255, 0.25);
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      font-size: 0.95rem;
+    }
+
+    .chat-preview {
+      padding: 1rem;
+      display: grid;
+      gap: 0.7rem;
+      flex: 1;
+      align-content: start;
+    }
+
+    .bubble {
+      padding: 0.65rem 0.85rem;
+      border-radius: 14px;
+      font-size: 0.88rem;
+      line-height: 1.45;
+      max-width: 92%;
+    }
+
+    .bubble.user {
+      margin-left: auto;
+      background: rgba(19, 136, 8, 0.14);
+      border: 1px solid rgba(19, 136, 8, 0.22);
+      border-bottom-right-radius: 4px;
+    }
+
+    .bubble.ai {
+      background: #fff;
+      border: 1px solid #f0e0d4;
+      border-bottom-left-radius: 4px;
+      box-shadow: 0 2px 8px rgba(17, 24, 39, 0.04);
+    }
+
+    .bubble-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: var(--saffron);
+      margin-bottom: 0.2rem;
+      display: block;
+    }
+
+    .stats-strip {
+      background: var(--dark);
+      width: 100%;
+      padding: 2.75rem 0;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 1.5rem;
+    }
+
+    .stat {
+      text-align: center;
+      padding: 0.5rem;
+    }
+
+    .stat strong {
+      display: block;
+      font-family: "Playfair Display", Georgia, serif;
+      font-size: clamp(2.5rem, 4.5vw, 3.75rem);
+      font-weight: 800;
+      color: #ffffff;
+      line-height: 1;
+      margin-bottom: 0.4rem;
+      letter-spacing: -0.02em;
+    }
+
+    .stat span {
+      color: rgba(255, 255, 255, 0.62);
+      font-weight: 600;
+      font-size: 0.88rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    section {
+      padding-block: 4rem;
+    }
+
+    .section-reveal {
+      opacity: 0;
+      transform: translateY(32px);
+      transition: opacity 0.7s ease, transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    .section-reveal.in-view {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .section-title {
+      text-align: center;
+      margin-bottom: 2.1rem;
+    }
+
+    .section-title h2 {
+      font-size: clamp(1.8rem, 3vw, 2.7rem);
+      margin-bottom: 0.4rem;
+      opacity: 0;
+      transform: translateX(-48px);
+      transition: opacity 0.65s ease, transform 0.65s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    .section-title.in-view h2 {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .section-title p {
+      color: var(--muted);
+      font-size: 1.05rem;
+    }
+
+    .language-strip {
+      border-bottom: 1px solid var(--border);
+      padding-block: 1.1rem;
+      background: #fff;
+      overflow: hidden;
+    }
+
+    section.stats-strip,
+    section.language-strip {
+      padding-block: unset;
+    }
+
+    section.language-strip {
+      padding-block: 1.1rem;
+    }
+
+    section.site-footer {
+      padding-block: unset;
+    }
+
+    .marquee {
+      display: flex;
+      width: max-content;
+      animation: marquee 35s linear infinite;
+      will-change: transform;
+    }
+
+    .language-strip:hover .marquee {
+      animation-play-state: paused;
+    }
+
+    .marquee-content {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      padding-right: 0;
+      list-style: none;
+      font-weight: 600;
+      color: #374151;
+      font-size: 1.05rem;
+    }
+
+    .marquee-content li {
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .marquee-content li.lang-name {
+      padding: 0 0.15rem;
+    }
+
+    .marquee-content li.lang-dot {
+      color: #d1d5db;
+      padding: 0 0.85rem;
+      font-weight: 400;
+      user-select: none;
+    }
+
+    .grid-4,
+    .grid-3,
+    .grid-6 {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .grid-6 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.2rem;
+      box-shadow: 0 8px 24px rgba(17, 24, 39, 0.04);
+      border-left: 4px solid transparent;
+      transition: transform 0.3s ease, box-shadow 0.3s ease, border-left-color 0.3s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-8px);
+      border-left-color: var(--saffron);
+      box-shadow: 0 20px 44px rgba(232, 96, 28, 0.14);
+    }
+
+    .card h3 {
+      margin-bottom: 0.45rem;
+      font-size: 1.35rem;
+    }
+
+    .card p {
+      color: var(--muted);
+      font-size: 0.98rem;
+    }
+
+
+    .step {
+      position: relative;
+      padding-top: 0.2rem;
+    }
+
+    .step-badge {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #f07f47, var(--saffron));
+      color: #fff;
+      font-weight: 800;
+      font-family: "Mukta", sans-serif;
+      display: grid;
+      place-items: center;
+      margin-bottom: 0.8rem;
+      box-shadow: 0 8px 20px rgba(232, 96, 28, 0.3);
+    }
+
+    .stagger-grid .stagger-item {
+      opacity: 0;
+    }
+
+    .stagger-grid.in-view .stagger-item {
+      animation: cardPop 0.55s ease forwards;
+      animation-delay: var(--stagger, 0ms);
+    }
+
+    @keyframes cardPop {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .feature-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      background: rgba(232, 96, 28, 0.12);
+      margin-bottom: 0.8rem;
+      font-size: 1.2rem;
+    }
+
+    .trust {
+      background: linear-gradient(to bottom, #fff, #fff9f4);
+      border-block: 1px solid var(--border);
+    }
+
+    .badge {
+      text-align: center;
+      padding: 1.1rem;
+      border-radius: 16px;
+      border: 1px dashed #f1c8b0;
+      border-left: 4px solid transparent;
+      background: #fff;
+      font-weight: 700;
+      transition: transform 0.3s ease, box-shadow 0.3s ease, border-left-color 0.3s ease;
+    }
+
+    .badge:hover {
+      transform: translateY(-6px);
+      border-left-color: var(--saffron);
+      box-shadow: 0 16px 36px rgba(232, 96, 28, 0.12);
+    }
+
+    .cta-banner {
+      padding: 0;
+      width: 100%;
+    }
+
+    .cta-box {
+      background: linear-gradient(120deg, #d45414 0%, var(--saffron) 45%, #f48a52 100%);
+      padding: clamp(3.5rem, 8vw, 5.5rem) clamp(1.5rem, 4vw, 2rem);
+      color: #fff;
+      display: grid;
+      gap: 1.25rem;
+      text-align: center;
+      width: 100%;
+    }
+
+    .cta-box h2 {
+      font-size: clamp(2.2rem, 5vw, 3.6rem);
+      font-weight: 800;
+      color: #fff;
+      text-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+      opacity: 0;
+      transform: translateX(-48px);
+      transition: opacity 0.65s ease, transform 0.65s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    .cta-banner.in-view .cta-box h2 {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .cta-box p {
+      opacity: 0.95;
+      font-size: clamp(1.05rem, 2vw, 1.25rem);
+      max-width: 52ch;
+      margin-inline: auto;
+    }
+
+    .cta-box .btn-cta-white {
+      justify-self: center;
+      background: #fff;
+      color: var(--saffron);
+      padding: 1rem 2rem;
+      font-size: 1.1rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+      animation: ctaPulse 3s ease-in-out infinite;
+    }
+
+    .cta-box .btn-cta-white:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 14px 36px rgba(0, 0, 0, 0.2);
+    }
+
+    .site-footer {
+      position: relative;
+      background: #0F0F0F;
+      color: rgba(255, 255, 255, 0.88);
+      padding: 3.5rem 0 calc(3rem + 3px);
+      overflow: hidden;
+    }
+
+    .footer-tricolor {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      z-index: 1;
+    }
+
+    .footer-tricolor span:nth-child(1) { background: var(--saffron); }
+    .footer-tricolor span:nth-child(2) { background: #ffffff; }
+    .footer-tricolor span:nth-child(3) { background: var(--green); }
+
+    .footer-inner {
+      display: grid;
+      gap: 1.1rem;
+      text-align: center;
+      justify-items: center;
+    }
+
+    .footer-brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.75rem;
+      color: #fff;
+      font-family: "Baloo 2", cursive;
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      transition: opacity 0.2s ease;
+    }
+
+    .footer-brand:hover {
+      opacity: 0.9;
+    }
+
+    .footer-heading {
+      font-family: "Playfair Display", Georgia, serif;
+      font-style: italic;
+      font-weight: 600;
+      font-size: clamp(1.5rem, 3.2vw, 2.15rem);
+      line-height: 1.35;
+      color: #ffffff;
+      max-width: 28ch;
+      letter-spacing: 0.01em;
+    }
+
+    .footer-credit {
+      font-family: "JetBrains Mono", ui-monospace, monospace;
+      font-size: 0.78rem;
+      color: rgba(255, 255, 255, 0.5);
+      letter-spacing: 0.02em;
+    }
+
+    .footer-links-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 0.5rem 0.85rem;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    .footer-links-row a {
+      color: rgba(255, 255, 255, 0.82);
+      transition: color 0.2s ease;
+    }
+
+    .footer-links-row a:hover {
+      color: var(--saffron);
+    }
+
+    .footer-links-row .dot {
+      color: rgba(255, 255, 255, 0.28);
+      user-select: none;
+    }
+
+    .footer-targets {
+      color: rgba(255, 255, 255, 0.42);
+      font-size: 0.82rem;
+      font-weight: 500;
+      letter-spacing: 0.03em;
+      margin-top: 0.25rem;
+    }
+
+    .footer-legal {
+      font-family: "Mukta", sans-serif;
+      font-size: 0.72rem;
+      color: rgba(255, 255, 255, 0.38);
+      line-height: 1.6;
+      max-width: 52ch;
+      margin-top: 0.75rem;
+      padding-top: 1rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    @keyframes wordReveal {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes ctaPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
+    @keyframes heroFadeIn {
+      from { opacity: 0; transform: translateY(18px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes pulseGlow {
+      0%, 100% { box-shadow: 0 8px 24px rgba(232, 96, 28, 0.35); }
+      50% { box-shadow: 0 10px 28px rgba(232, 96, 28, 0.55); }
+    }
+
+    @keyframes blobFloat {
+      0% { transform: translate(-4%, -2%) scale(1); }
+      50% { transform: translate(2%, 4%) scale(1.06); }
+      100% { transform: translate(-2%, 2%) scale(1.02); }
+    }
+
+    @keyframes blobDrift1 {
+      0% { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(60px, 80px) scale(1.08); }
+    }
+
+    @keyframes blobDrift2 {
+      0% { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(-70px, -50px) scale(1.05); }
+    }
+
+    @keyframes blobDrift3 {
+      0% { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(-50px, 60px) scale(1.1); }
+    }
+
+    @keyframes blobDrift4 {
+      0% { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(40px, -40px) scale(1.06); }
+    }
+
+    @keyframes phoneFloat {
+      0%, 100% { transform: rotate(-3deg) translateY(0); }
+      50% { transform: rotate(-3deg) translateY(-12px); }
+    }
+
+    @keyframes marquee {
+      from { transform: translateX(0); }
+      to { transform: translateX(-50%); }
+    }
+
+    @media (max-width: 1040px) {
+      .hero-grid {
+        grid-template-columns: 1fr;
+        min-height: auto;
+      }
+      .hero-visual { order: -1; }
+      .hero-content h1 { max-width: none; }
+      .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 820px) {
+      .nav-links { display: none; }
+      .trust-bar-inner { font-size: 0.75rem; gap: 0.4rem; }
+      .grid-3,
+      .grid-6 { grid-template-columns: 1fr; }
+      section { padding-block: 3.3rem; }
+    }
+
+    @media (max-width: 580px) {
+      :root {
+        --nav-height: 70px;
+        --trust-bar-height: 52px;
+      }
+      .logo span:last-child { display: none; }
+      .stats { grid-template-columns: 1fr 1fr; gap: 1rem; }
+      .stats-strip { padding: 2rem 0; }
+      .grid-4 { grid-template-columns: 1fr; }
+      .hero { padding-top: calc(var(--header-total) + 1.5rem); }
+      .hero-actions .btn { width: 100%; }
+      .trust-bar-inner { justify-content: center; }
+      .cta-box { text-align: left; }
+      .cta-box .btn-cta-white { justify-self: start; }
+      .footer-heading { max-width: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-blobs" aria-hidden="true">
+    <span class="blob-saffron-1"></span>
+    <span class="blob-saffron-2"></span>
+    <span class="blob-green-1"></span>
+    <span class="blob-green-2"></span>
+  </div>
+
+  <div class="tricolor" aria-hidden="true">
+    <span></span><span></span><span></span>
+  </div>
+
+  <div class="trust-bar" aria-label="Trust highlights">
+    <div class="container trust-bar-inner">
+      <span class="trust-pill">🔒 Zero Data</span>
+      <span class="sep" aria-hidden="true">·</span>
+      <span class="trust-pill">🆓 Always Free</span>
+      <span class="sep" aria-hidden="true">·</span>
+      <span class="trust-pill">🏛 Govt Data</span>
+    </div>
+  </div>
+
+  <header class="navbar" id="navbar">
+    <div class="container nav-inner">
+      <a class="logo" href="#top" aria-label="YojanaGPT home">
+        <img src="logo.png" alt="YojanaGPT" style="width:40px;height:40px;border-radius:10px;object-fit:cover;">
+        <span>YojanaGPT</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="#problem">Problem</a></li>
+        <li><a href="#how">How It Works</a></li>
+        <li><a href="#features">Features</a></li>
+        <li><a href="#trust">Trust</a></li>
+        <li><a href="https://github.com/Aditya9122002/yojanagpt" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+      </ul>
+      <a class="btn btn-primary" href="https://adi12340-yojanagpt.hf.space/ui" target="_blank" rel="noopener noreferrer">Try Now &rarr;</a>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero" id="hero">
+      <div class="hero-blob"></div>
+      <div class="container">
+        <div class="hero-grid">
+          <div class="hero-content">
+            <h1 id="heroHeadline">
+              <span class="reveal-word">Every</span>
+              <span class="reveal-word">Indian</span>
+              <span class="reveal-word">Deserves</span>
+              <span class="reveal-word">to</span>
+              <span class="reveal-word">Know</span>
+              <span class="reveal-word">What</span>
+              <span class="reveal-word">the</span>
+              <span class="reveal-word headline-accent">Government</span>
+              <span class="reveal-word headline-accent">Built</span>
+              <span class="reveal-word headline-accent">For</span>
+              <span class="reveal-word headline-accent">Them.</span>
+            </h1>
+            <p class="hero-tagline-hi">आपकी योजनाओं का साथी</p>
+            <p>
+              YojanaGPT is your multilingual AI guide for Indian welfare and development schemes.
+              Ask naturally, check eligibility instantly, and get a clear application path with trusted guidance.
+            </p>
+            <div class="hero-actions">
+              <a class="btn btn-primary" href="https://adi12340-yojanagpt.hf.space/ui" target="_blank" rel="noopener noreferrer">Try Now &rarr;</a>
+              <a class="btn btn-secondary" href="https://github.com/Aditya9122002/yojanagpt" target="_blank" rel="noopener noreferrer">View on GitHub</a>
+            </div>
+          </div>
+          <aside class="hero-visual" aria-hidden="true">
+            <div class="phone-mockup">
+              <div class="phone-notch"></div>
+              <div class="phone-screen">
+                <div class="phone-header">
+                  <span class="phone-header-icon">🏛</span>
+                  <span>YojanaGPT</span>
+                </div>
+                <div class="chat-preview">
+                  <div class="bubble user">मैं उत्तर प्रदेश का किसान हूँ। क्या मैं PM-KISAN के लिए पात्र हूँ?</div>
+                  <div class="bubble ai">
+                    <span class="bubble-label">YojanaGPT</span>
+                    हाँ, यदि आपके पास 2 हेक्टेयर तक की जोत है और आपके नाम पर भूमि रिकॉर्ड है, तो आप PM-KISAN के लिए पात्र हैं। ₹6,000/वर्ष तीन किस्तों में मिलती है।
+                  </div>
+                  <div class="bubble user">आवेदन कैसे करूँ?</div>
+                  <div class="bubble ai">
+                    <span class="bubble-label">YojanaGPT</span>
+                    pmkisan.gov.in पर जाएँ या अपने नज़दीकी CSC से पंजीकरण कराएँ। मैं आवश्यक दस्तावेज़ों की सूची भी दे सकता हूँ।
+                  </div>
+                </div>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <section class="stats-strip" id="stats" aria-label="Platform statistics">
+      <div class="container">
+        <div class="stats">
+          <article class="stat">
+            <strong class="counter" data-target="4357">0</strong>
+            <span>Government Schemes</span>
+          </article>
+          <article class="stat">
+            <strong class="counter" data-target="22">0</strong>
+            <span>Indian Languages</span>
+          </article>
+          <article class="stat">
+            <strong class="counter" data-target="22467">0</strong>
+            <span>Indexed Chunks</span>
+          </article>
+          <article class="stat">
+            <strong class="counter" data-target="0">0</strong>
+            <span>Data Stored</span>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="language-strip section-reveal" aria-label="Supported Indian languages">
+      <div class="marquee">
+        <ul class="marquee-content">
+          <li class="lang-name">हिंदी</li><li class="lang-dot">·</li>
+          <li class="lang-name">English</li><li class="lang-dot">·</li>
+          <li class="lang-name">বাংলা</li><li class="lang-dot">·</li>
+          <li class="lang-name">తెలుగు</li><li class="lang-dot">·</li>
+          <li class="lang-name">मराठी</li><li class="lang-dot">·</li>
+          <li class="lang-name">தமிழ்</li><li class="lang-dot">·</li>
+          <li class="lang-name">اردو</li><li class="lang-dot">·</li>
+          <li class="lang-name">ગુજરાતી</li><li class="lang-dot">·</li>
+          <li class="lang-name">ಕನ್ನಡ</li><li class="lang-dot">·</li>
+          <li class="lang-name">ଓଡ଼ିଆ</li><li class="lang-dot">·</li>
+          <li class="lang-name">മലയാളം</li><li class="lang-dot">·</li>
+          <li class="lang-name">ਪੰਜਾਬੀ</li><li class="lang-dot">·</li>
+          <li class="lang-name">অসমীয়া</li><li class="lang-dot">·</li>
+          <li class="lang-name">मैथिली</li><li class="lang-dot">·</li>
+          <li class="lang-name">ᱥᱟᱱᱛᱟᱲᱤ</li><li class="lang-dot">·</li>
+          <li class="lang-name">کٲشُر</li><li class="lang-dot">·</li>
+          <li class="lang-name">नेपाली</li><li class="lang-dot">·</li>
+          <li class="lang-name">कोंकणी</li><li class="lang-dot">·</li>
+          <li class="lang-name">سنڌي</li><li class="lang-dot">·</li>
+          <li class="lang-name">डोगरी</li><li class="lang-dot">·</li>
+          <li class="lang-name">মৈতৈলোন্</li><li class="lang-dot">·</li>
+          <li class="lang-name">बड़ो</li><li class="lang-dot">·</li>
+        </ul>
+        <ul class="marquee-content" aria-hidden="true">
+          <li class="lang-name">हिंदी</li><li class="lang-dot">·</li>
+          <li class="lang-name">English</li><li class="lang-dot">·</li>
+          <li class="lang-name">বাংলা</li><li class="lang-dot">·</li>
+          <li class="lang-name">తెలుగు</li><li class="lang-dot">·</li>
+          <li class="lang-name">मराठी</li><li class="lang-dot">·</li>
+          <li class="lang-name">தமிழ்</li><li class="lang-dot">·</li>
+          <li class="lang-name">اردو</li><li class="lang-dot">·</li>
+          <li class="lang-name">ગુજરાતી</li><li class="lang-dot">·</li>
+          <li class="lang-name">ಕನ್ನಡ</li><li class="lang-dot">·</li>
+          <li class="lang-name">ଓଡ଼ିଆ</li><li class="lang-dot">·</li>
+          <li class="lang-name">മലയാളം</li><li class="lang-dot">·</li>
+          <li class="lang-name">ਪੰਜਾਬੀ</li><li class="lang-dot">·</li>
+          <li class="lang-name">অসমীয়া</li><li class="lang-dot">·</li>
+          <li class="lang-name">मैथिली</li><li class="lang-dot">·</li>
+          <li class="lang-name">ᱥᱟᱱᱛᱟᱲᱤ</li><li class="lang-dot">·</li>
+          <li class="lang-name">کٲشُر</li><li class="lang-dot">·</li>
+          <li class="lang-name">नेपाली</li><li class="lang-dot">·</li>
+          <li class="lang-name">कोंकणी</li><li class="lang-dot">·</li>
+          <li class="lang-name">سنڌي</li><li class="lang-dot">·</li>
+          <li class="lang-name">डोगरी</li><li class="lang-dot">·</li>
+          <li class="lang-name">মৈতৈলোন্</li><li class="lang-dot">·</li>
+          <li class="lang-name">बड़ो</li><li class="lang-dot">·</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="problem section-reveal" id="problem">
+      <div class="container">
+        <div class="section-title">
+          <h2>The Access Gap We Solve</h2>
+          <p>Important schemes exist, but people struggle to discover and apply for them.</p>
+        </div>
+        <div class="grid-4 stagger-grid">
+          <article class="card stagger-item">
+            <h3>Fragmented Information</h3>
+            <p>Scheme details are scattered across portals, PDFs, and department pages that are hard to navigate.</p>
+          </article>
+          <article class="card stagger-item">
+            <h3>Eligibility Confusion</h3>
+            <p>Citizens often do not know which schemes apply to their category, occupation, or location.</p>
+          </article>
+          <article class="card stagger-item">
+            <h3>Language Barriers</h3>
+            <p>Most official guidance is not accessible in a citizen's preferred language and everyday style.</p>
+          </article>
+          <article class="card stagger-item">
+            <h3>Application Complexity</h3>
+            <p>Documents, deadlines, and process steps are unclear, causing missed opportunities and delays.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section-reveal" id="how">
+      <div class="container">
+        <div class="section-title">
+          <h2>How YojanaGPT Works</h2>
+          <p>Simple, fast, and designed for trust.</p>
+        </div>
+        <div class="grid-3">
+          <article class="card step">
+            <div class="step-badge">1</div>
+            <h3>Ask in Your Language</h3>
+            <p>Type your situation naturally - income, age, category, profession, or goal.</p>
+          </article>
+          <article class="card step">
+            <div class="step-badge">2</div>
+            <h3>Get Matched Schemes</h3>
+            <p>Receive relevant schemes with clear eligibility and document requirements.</p>
+          </article>
+          <article class="card step">
+            <div class="step-badge">3</div>
+            <h3>Apply with Confidence</h3>
+            <p>Follow a practical step-by-step roadmap and official application channels.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section-reveal" id="features">
+      <div class="container">
+        <div class="section-title">
+          <h2>Everything You Need, One Assistant</h2>
+          <p>Purpose-built features for real citizen journeys.</p>
+        </div>
+        <div class="grid-6 features-grid stagger-grid">
+          <article class="card feature-card stagger-item">
+            <div class="feature-icon">💬</div>
+            <h3>Ask</h3>
+            <p>Ask questions naturally and get concise, context-aware guidance instantly.</p>
+          </article>
+          <article class="card feature-card stagger-item">
+            <div class="feature-icon">✅</div>
+            <h3>Eligibility</h3>
+            <p>Know if you qualify before you begin, with practical and transparent criteria.</p>
+          </article>
+          <article class="card feature-card stagger-item">
+            <div class="feature-icon">📄</div>
+            <h3>Documents</h3>
+            <p>See the exact document checklist required for each scheme and use-case.</p>
+          </article>
+          <article class="card feature-card stagger-item">
+            <div class="feature-icon">📝</div>
+            <h3>Apply</h3>
+            <p>Get a guided flow from preparation to submission, reducing mistakes and delays.</p>
+          </article>
+          <article class="card feature-card stagger-item">
+            <div class="feature-icon">⚖️</div>
+            <h3>Compare</h3>
+            <p>Compare similar schemes side by side to choose the most beneficial option.</p>
+          </article>
+          <article class="card feature-card stagger-item">
+            <div class="feature-icon">📞</div>
+            <h3>Helpline</h3>
+            <p>Access trusted support references and escalation paths when you need help.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="trust section-reveal" id="trust">
+      <div class="container">
+        <div class="section-title">
+          <h2>Built on Trust</h2>
+          <p>Transparent by design, secure by default.</p>
+        </div>
+        <div class="grid-4 stagger-grid">
+          <div class="badge stagger-item">Zero Personal Data Stored</div>
+          <div class="badge stagger-item">Grounded in Real Government Data</div>
+          <div class="badge stagger-item">MIT Open Source</div>
+          <div class="badge stagger-item">Completely Free to Use</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="cta-banner section-reveal">
+      <div class="cta-box">
+        <h2>Find the Right Scheme in Minutes</h2>
+        <p>Empower every citizen with clear, multilingual, and reliable scheme guidance.</p>
+        <a class="btn btn-cta-white" href="https://adi12340-yojanagpt.hf.space/ui" target="_blank" rel="noopener noreferrer">Try Now &rarr;</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer section-reveal">
+    <div class="container footer-inner">
+      <a class="footer-brand" href="#top">
+        <img src="logo.png" alt="YojanaGPT" style="width:40px;height:40px;border-radius:10px;object-fit:cover;">
+        <span>YojanaGPT</span>
+      </a>
+      <h2 class="footer-heading">Har Naagrik ka Haq — हर नागरिक का हक़</h2>
+      <p class="footer-credit">Built by Aditya Agarwal · AI/ML Engineer · Pune, India</p>
+      <nav class="footer-links-row" aria-label="External links">
+        <a href="https://github.com/Aditya9122002/yojanagpt" target="_blank" rel="noopener noreferrer">GitHub</a>
+        <span class="dot" aria-hidden="true">·</span>
+        <a href="https://linkedin.com/in/YOUR_LINKEDIN" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+        <span class="dot" aria-hidden="true">·</span>
+        <a href="https://adi12340-yojanagpt.hf.space/ui" target="_blank" rel="noopener noreferrer">HF Space</a>
+      </nav>
+      <p class="footer-targets">Targeting MeitY · Bhashini · Sarvam AI · Krutrim</p>
+      <p class="footer-legal">© 2025 YojanaGPT · MIT License · Made with ❤️ for Bharat · Privacy: No data collected · No cookies</p>
+    </div>
+    <div class="footer-tricolor" aria-hidden="true">
+      <span></span><span></span><span></span>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      const navbar = document.getElementById("navbar");
+      const hero = document.getElementById("hero");
+      const counters = document.querySelectorAll(".counter");
+      const statsSection = document.getElementById("stats");
+      const revealSections = document.querySelectorAll(".section-reveal");
+      const headlineWords = document.querySelectorAll(".reveal-word");
+      const STAGGER_MS = 80;
+
+      headlineWords.forEach((word, index) => {
+        word.style.animationDelay = (index * 100) + "ms";
+      });
+
+      function getHeaderOffset() {
+        const tricolor = 9;
+        const trustBar = document.querySelector(".trust-bar");
+        const nav = document.querySelector(".navbar");
+        return tricolor + (trustBar ? trustBar.offsetHeight : 38) + (nav ? nav.offsetHeight : 78) + 12;
+      }
+
+      document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+        anchor.addEventListener("click", (e) => {
+          const href = anchor.getAttribute("href");
+          if (!href || href === "#") return;
+          if (href === "#top") {
+            e.preventDefault();
+            window.scrollTo({ top: 0, behavior: "smooth" });
+            return;
+          }
+          const target = document.querySelector(href);
+          if (!target) return;
+          e.preventDefault();
+          const top = target.getBoundingClientRect().top + window.scrollY - getHeaderOffset();
+          window.scrollTo({ top, behavior: "smooth" });
+        });
+      });
+
+      function handleNav() {
+        const heroBottom = hero ? hero.offsetTop + hero.offsetHeight - 20 : 400;
+        if (window.scrollY > heroBottom) {
+          navbar.classList.add("scrolled");
+        } else {
+          navbar.classList.remove("scrolled");
+        }
+      }
+
+      handleNav();
+      window.addEventListener("scroll", handleNav, { passive: true });
+      window.addEventListener("resize", handleNav, { passive: true });
+
+      function formatNumber(value) {
+        return new Intl.NumberFormat("en-IN").format(value);
+      }
+
+      let countersAnimated = false;
+
+      function animateCounter(counterEl) {
+        const target = Number(counterEl.dataset.target);
+        const duration = 1800;
+        const startTime = performance.now();
+
+        function frame(now) {
+          const elapsed = now - startTime;
+          const progress = Math.min(elapsed / duration, 1);
+          const eased = 1 - Math.pow(1 - progress, 4);
+          const current = Math.round(target * eased);
+          counterEl.textContent = formatNumber(current);
+          if (progress < 1) requestAnimationFrame(frame);
+        }
+
+        requestAnimationFrame(frame);
+      }
+
+      const statsObserver = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && !countersAnimated) {
+            counters.forEach(animateCounter);
+            countersAnimated = true;
+            statsObserver.disconnect();
+          }
+        });
+      }, { threshold: 0.25 });
+
+      if (statsSection) statsObserver.observe(statsSection);
+
+      function activateStaggerGrid(grid) {
+        grid.classList.add("in-view");
+        grid.querySelectorAll(".stagger-item").forEach((item, idx) => {
+          item.style.setProperty("--stagger", (idx * STAGGER_MS) + "ms");
+        });
+      }
+
+      function revealSection(section) {
+        section.classList.add("in-view");
+        const title = section.querySelector(".section-title");
+        if (title) title.classList.add("in-view");
+        section.querySelectorAll(".stagger-grid").forEach(activateStaggerGrid);
+      }
+
+      const sectionObserver = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          revealSection(entry.target);
+          sectionObserver.unobserve(entry.target);
+        });
+      }, { threshold: 0.12, rootMargin: "0px 0px -40px 0px" });
+
+      revealSections.forEach((section) => sectionObserver.observe(section));
+
+      document.querySelectorAll("main section:not(.section-reveal)").forEach((section) => {
+        const title = section.querySelector(".section-title");
+        if (!title) return;
+        const titleObserver = new IntersectionObserver((entries) => {
+          entries.forEach((entry) => {
+            if (!entry.isIntersecting) return;
+            entry.target.classList.add("in-view");
+            titleObserver.unobserve(entry.target);
+          });
+        }, { threshold: 0.3 });
+        titleObserver.observe(title);
+      });
+    })();
+  </script>
+</body>
+</html>
