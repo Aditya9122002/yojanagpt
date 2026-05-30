@@ -400,13 +400,35 @@ def build_contact_prompt(
         Prompt string focused on contact extraction.
     """
     if not chunks:
-        return f"""{SYSTEM_PROMPT}
+        context = "No relevant scheme information was found."
+        return SYSTEM_PROMPT + f"""
+You are a government scheme helpline assistant for Indian citizens.
 
-No relevant scheme information was found.
+When asked about any scheme's helpline or contact details, ALWAYS provide:
+1. Toll-free helpline number
+2. Official website URL  
+3. Email address (if available)
+4. Grievance portal link (if available)
+5. Working hours (if known)
 
-User question: {question}
+Use this verified helpline data if the scheme matches:
+- PM Kisan: 155261 | pmkisan.gov.in
+- Ayushman Bharat PM-JAY: 14555 | pmjay.gov.in
+- PM Awas Yojana Urban: 1800-11-6446 | pmaymis.gov.in
+- PMFBY Fasal Bima: 1800-200-7710 | pmfby.gov.in
+- NSP Scholarship: 0120-6619540 | scholarships.gov.in
+- Mudra Loan PMMY: 1800-180-1111 | mudra.org.in
+- Sukanya Samriddhi: 1800-11-5526 | nsiindia.gov.in
+- Ration Card PDS: 1800-11-4000 | nfsa.gov.in
 
-Tell the user you could not find contact details and suggest they visit myscheme.gov.in or call 1800-11-8080 (MyScheme helpline)."""
+Also check the context below for additional scheme helplines.
+Never make up phone numbers. If unknown, say clearly.
+
+Question: {question}
+
+Context from schemes database:
+{context}
+"""
 
     context_parts = []
     seen_schemes = set()
@@ -422,29 +444,33 @@ Tell the user you could not find contact details and suggest they visit myscheme
 
     context = "\n\n".join(context_parts)
 
-    prompt = f"""{SYSTEM_PROMPT}
+    prompt = SYSTEM_PROMPT + f"""
+You are a government scheme helpline assistant for Indian citizens.
 
---- CONTEXT (Government Scheme Information) ---
+When asked about any scheme's helpline or contact details, ALWAYS provide:
+1. Toll-free helpline number
+2. Official website URL  
+3. Email address (if available)
+4. Grievance portal link (if available)
+5. Working hours (if known)
+
+Use this verified helpline data if the scheme matches:
+- PM Kisan: 155261 | pmkisan.gov.in
+- Ayushman Bharat PM-JAY: 14555 | pmjay.gov.in
+- PM Awas Yojana Urban: 1800-11-6446 | pmaymis.gov.in
+- PMFBY Fasal Bima: 1800-200-7710 | pmfby.gov.in
+- NSP Scholarship: 0120-6619540 | scholarships.gov.in
+- Mudra Loan PMMY: 1800-180-1111 | mudra.org.in
+- Sukanya Samriddhi: 1800-11-5526 | nsiindia.gov.in
+- Ration Card PDS: 1800-11-4000 | nfsa.gov.in
+
+Also check the context below for additional scheme helplines.
+Never make up phone numbers. If unknown, say clearly.
+
+Question: {question}
+
+Context from schemes database:
 {context}
---- END CONTEXT ---
-
-User question: {question}
-
-Your task: Extract all contact information for this scheme.
-
-List:
-- Helpline numbers (toll-free if available)
-- Official website / portal URL
-- Email addresses
-- Nodal ministry or department name
-- State-level contact points if mentioned
-- Grievance redressal portal if mentioned
-
-If a specific piece of information is not in the context, say "Not specified in available data" rather than guessing.
-End with: "For general scheme queries you can also call MyScheme helpline: 1800-11-8080"
-
-Answer in the same language as the question.
-
-Answer:"""
+"""
 
     return prompt
