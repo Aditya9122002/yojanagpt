@@ -209,6 +209,15 @@ body{font-family:'Mukta','Noto Sans Devanagari',sans-serif;background:var(--off-
   .input-area{padding:10px 12px 14px;}
   .chat-messages{padding:16px 12px;}
 }
+.helpline-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:8px;}
+.helpline-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px 16px;cursor:pointer;transition:all var(--t);}
+[data-theme="dark"] .helpline-card{background:var(--surface);border-color:var(--border2);}
+.helpline-card:hover{border-color:var(--saffron);box-shadow:var(--shadow-md);transform:translateY(-3px);}
+.helpline-card .helpline-name{font-size:0.85rem;font-weight:600;color:var(--text);margin-bottom:6px;line-height:1.3;}
+.helpline-card .helpline-num{font-family:'JetBrains Mono',monospace;font-size:0.88rem;font-weight:600;color:var(--saffron);letter-spacing:0.02em;}
+@media(max-width:480px){
+  .helpline-grid{grid-template-columns:1fr;}
+}
 </style>
 </head>
 <body data-theme="light">
@@ -386,6 +395,40 @@ body{font-family:'Mukta','Noto Sans Devanagari',sans-serif;background:var(--off-
       <div class="chat-pane" id="pane-contact">
         <div class="mode-header"><span class="mode-breadcrumb">YojanaGPT &rsaquo; <strong>Helpline / हेल्पलाइन</strong></span></div>
         <div class="chat-messages" id="msgs-contact">
+          <div class="helpline-grid">
+            <div class="helpline-card" onclick="useSuggestion('PM Kisan helpline number kya hai?')">
+              <div class="helpline-name">🌾 PM Kisan</div>
+              <div class="helpline-num">155261</div>
+            </div>
+            <div class="helpline-card" onclick="useSuggestion('Ayushman Bharat helpline number kya hai?')">
+              <div class="helpline-name">🏥 Ayushman Bharat</div>
+              <div class="helpline-num">14555</div>
+            </div>
+            <div class="helpline-card" onclick="useSuggestion('PM Awas Yojana helpline number kya hai?')">
+              <div class="helpline-name">🏠 PM Awas Yojana</div>
+              <div class="helpline-num">1800-11-6446</div>
+            </div>
+            <div class="helpline-card" onclick="useSuggestion('PMFBY Fasal Bima helpline number kya hai?')">
+              <div class="helpline-name">🌱 PMFBY Fasal Bima</div>
+              <div class="helpline-num">1800-200-7710</div>
+            </div>
+            <div class="helpline-card" onclick="useSuggestion('NSP Scholarship helpline number kya hai?')">
+              <div class="helpline-name">🎓 NSP Scholarship</div>
+              <div class="helpline-num">0120-6619540</div>
+            </div>
+            <div class="helpline-card" onclick="useSuggestion('Mudra Loan helpline number kya hai?')">
+              <div class="helpline-name">💰 Mudra Loan</div>
+              <div class="helpline-num">1800-180-1111</div>
+            </div>
+            <div class="helpline-card" onclick="useSuggestion('Sukanya Samriddhi helpline number kya hai?')">
+              <div class="helpline-name">👩 Sukanya Samriddhi</div>
+              <div class="helpline-num">1800-11-5526</div>
+            </div>
+            <div class="helpline-card" onclick="useSuggestion('Ration Card PDS helpline number kya hai?')">
+              <div class="helpline-name">🍚 Ration Card PDS</div>
+              <div class="helpline-num">1800-11-4000</div>
+            </div>
+          </div>
           <div class="typing-row" id="typing-contact">
             <div class="avatar bot-av">YG</div>
             <div class="typing-body"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>
@@ -415,6 +458,7 @@ let currentMode=null,schemeNames=[];
 const modeConfig={ask:{placeholder:'अपना सवाल यहाँ लिखें… / Ask your question…',typing:'Searching 4,357 schemes…'},eligibility:{placeholder:'कौन सी योजना जाँचनी है? / Which scheme to check?',typing:'Checking eligibility…'},documents:{placeholder:'किस योजना के दस्तावेज़? / Documents for which scheme?',typing:'Extracting document list…'},apply:{placeholder:'कैसे आवेदन करें? / How to apply for which scheme?',typing:'Building guide…'},compare:{placeholder:'तुलना नोट… / Comparison note…',typing:'Comparing schemes…'},contact:{placeholder:'किस योजना की हेल्पलाइन? / Helpline for which scheme?',typing:'Looking up contacts…'}};
 function setMode(mode){document.getElementById('welcomeScreen').style.display='none';document.querySelectorAll('.chat-pane').forEach(p=>p.classList.remove('active-pane'));document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));document.getElementById('pane-'+mode).classList.add('active-pane');document.querySelector('[data-mode="'+mode+'"]').classList.add('active');currentMode=mode;document.getElementById('questionInput').placeholder=modeConfig[mode].placeholder;hideError();scrollDown();document.getElementById('questionInput').focus();if(window.innerWidth<=768)closeSidebar();}
 function quickSend(text){if(!currentMode)setMode('ask');document.getElementById('questionInput').value=text;autoResize(document.getElementById('questionInput'));handleSend();}
+function useSuggestion(text){setMode('contact');document.getElementById('questionInput').value=text;autoResize(document.getElementById('questionInput'));handleSend();}
 function autoResize(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,120)+'px';}
 function handleKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();handleSend();}}
 async function handleSend(){if(!currentMode)setMode('ask');const input=document.getElementById('questionInput');const question=input.value.trim();if(!question&&currentMode!=='compare')return;hideError();let displayQ=question;if(currentMode==='compare'&&schemeNames.length>=2)displayQ=question||'Compare: '+schemeNames.join(' vs ');if(!displayQ)return;addUserMsg(displayQ);input.value='';input.style.height='auto';showTyping();scrollDown();try{let data;switch(currentMode){case 'ask':data=await callAPI('/ask',{question,top_k:5});break;case 'eligibility':data=await callAPI('/eligibility',{question,profile:getProfile(),top_k:5});break;case 'documents':data=await callAPI('/documents',{question,top_k:5});break;case 'apply':data=await callAPI('/apply',{question,top_k:5});break;case 'compare':if(schemeNames.length<2){showError('कम से कम 2 योजनाएँ चुनें · Add at least 2 schemes');hideTyping();return;}data=await callAPI('/compare',{question:question||'Compare '+schemeNames.join(' and '),scheme_names:schemeNames,top_k:5});break;case 'contact':data=await callAPI('/contact',{question,top_k:5});break;}hideTyping();addBotMsg(data);}catch(err){hideTyping();showError(err.message);}scrollDown();}
