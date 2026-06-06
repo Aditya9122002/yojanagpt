@@ -55,11 +55,13 @@
   --shadow-lg: 0 8px 32px rgba(0,0,0,0.5);
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-html{scroll-behavior:smooth;}
-body{font-family:'Mukta','Noto Sans Devanagari',sans-serif;background:var(--off-white);color:var(--text);min-height:100vh;overflow:hidden;transition:background var(--t),color var(--t);}
+html{scroll-behavior:smooth;overflow-x:hidden;width:100%;max-width:100vw;}
+body{font-family:'Mukta','Noto Sans Devanagari',sans-serif;background:var(--off-white);color:var(--text);min-height:100vh;overflow:hidden;overflow-x:hidden;width:100%;max-width:100vw;transition:background var(--t),color var(--t);}
+body.sidebar-open{overflow:hidden;}
+.app-shell{overflow-x:hidden;width:100%;max-width:100vw;}
 .tricolor-bar{height:4px;background:linear-gradient(90deg,var(--saffron) 33.33%,var(--white) 33.33%,var(--white) 66.66%,var(--green-india) 66.66%);flex-shrink:0;position:relative;z-index:100;}
 .app-shell{display:flex;flex-direction:column;height:100vh;height:100dvh;}
-.topbar{display:flex;align-items:center;gap:12px;padding:0 20px;height:60px;background:var(--white);border-bottom:1px solid var(--border);flex-shrink:0;z-index:50;}
+.topbar{display:flex;align-items:center;gap:12px;padding:0 20px;height:60px;background:var(--white);border-bottom:1px solid var(--border);flex-shrink:0;z-index:50;width:100%;box-sizing:border-box;}
 .logo-area{display:flex;align-items:center;gap:10px;text-decoration:none;}
 .logo-mark{width:36px;height:36px;background:var(--saffron);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;}
 .logo-text-block h1{font-family:'Baloo 2',sans-serif;font-size:1.15rem;font-weight:700;color:var(--text);line-height:1.1;letter-spacing:-0.02em;}
@@ -73,33 +75,77 @@ body{font-family:'Mukta','Noto Sans Devanagari',sans-serif;background:var(--off-
 @keyframes livePulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.5;transform:scale(0.8);}}
 .icon-btn{width:34px;height:34px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--white);color:var(--text2);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all var(--t);}
 .icon-btn:hover{background:var(--surface);color:var(--text);border-color:var(--border2);}
-.main-layout{display:flex;flex:1;overflow:hidden;}
-.sidebar{width:var(--sidebar-w);background:var(--white);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden;transition:width var(--t),transform var(--t);}
+.main-layout{display:flex;flex:1;overflow:hidden;width:100%;}
+.sidebar{width:var(--sidebar-w);background:var(--white);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden;transition:transform 0.3s ease,width var(--t);}
+.sidebar-nav{width:100%;overflow-x:hidden;padding:12px 8px;box-sizing:border-box;}
 .sidebar-header{padding:16px 16px 10px;font-size:0.65rem;font-weight:700;color:var(--text4);letter-spacing:0.12em;text-transform:uppercase;}
 .nav-section{padding:4px 10px;display:flex;flex-direction:column;gap:2px;}
-.nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius-sm);cursor:pointer;transition:all var(--t);border:none;background:none;width:100%;text-align:left;color:var(--text2);font-family:'Mukta',sans-serif;font-size:0.88rem;font-weight:500;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius-sm);cursor:pointer;transition:all var(--t);border:none;background:none;width:100%;box-sizing:border-box;text-align:left;color:var(--text2);font-family:'Mukta',sans-serif;font-size:0.88rem;font-weight:500;}
 .nav-item:hover{background:var(--surface);color:var(--text);}
 .nav-item.active{background:var(--saffron-pale);color:var(--saffron);}
 [data-theme="dark"] .nav-item.active{background:#2A1A0E;color:var(--saffron-light);}
 .nav-icon{width:30px;height:30px;border-radius:7px;background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;transition:all var(--t);}
 .nav-item.active .nav-icon{background:var(--saffron);color:white;}
-.nav-text-block{line-height:1.2;}
+.nav-text-block{line-height:1.2;min-width:0;flex:1;}
 .nav-label{display:block;font-size:0.88rem;font-weight:600;}
-.nav-sublabel{display:block;font-size:0.70rem;color:var(--text3);font-weight:400;}
+.nav-sublabel{display:block;font-size:0.70rem;color:var(--text3);font-weight:400;white-space:normal;word-break:break-word;overflow-wrap:break-word;}
 .nav-item.active .nav-sublabel{color:var(--saffron-light);}
 .sidebar-divider{margin:8px 16px;border:none;border-top:1px solid var(--border);}
 .sidebar-footer{margin-top:auto;padding:12px 16px 16px;}
 .privacy-note{background:var(--green-light);border:1px solid rgba(19,136,8,0.2);border-radius:var(--radius-sm);padding:10px 12px;font-size:0.72rem;color:var(--green-india);line-height:1.4;}
 [data-theme="dark"] .privacy-note{color:#5BC94F;border-color:rgba(91,201,79,0.2);}
-.content-area{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--off-white);}
-.welcome-screen{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;gap:0;overflow-y:auto;}
-.welcome-hero{text-align:center;margin-bottom:32px;}
-.ashoka-ring{width:80px;height:80px;border:3px solid var(--saffron);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:32px;background:var(--saffron-pale);position:relative;}
-.ashoka-ring::before{content:'';position:absolute;inset:5px;border-radius:50%;border:1.5px dashed rgba(232,96,28,0.3);}
-.welcome-greeting{font-family:'Baloo 2',sans-serif;font-size:2rem;font-weight:700;color:var(--text);line-height:1.2;margin-bottom:8px;}
-.welcome-greeting em{color:var(--saffron);font-style:normal;}
-.welcome-subtitle{font-size:0.95rem;color:var(--text3);max-width:480px;line-height:1.65;margin:0 auto;}
-.welcome-subtitle strong{color:var(--text2);font-weight:600;}
+.main-content,.content-area{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--off-white);width:100%;overflow-x:hidden;min-width:0;}
+.welcome-screen{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;width:100%;max-width:580px;margin:0 auto;padding:16px;box-sizing:border-box;overflow-x:hidden;overflow-y:auto;}
+.welcome-inner{width:100%;display:flex;flex-direction:column;gap:20px;box-sizing:border-box;}
+.welcome-screen .welcome-section,.welcome-screen .ws-dev-card,.welcome-screen .ws-quote-card,.welcome-screen .ws-stat-card,.welcome-screen .ws-suggest-card,.welcome-screen .ws-suggest-grid{width:100%;box-sizing:border-box;overflow:hidden;word-break:break-word;overflow-wrap:break-word;}
+.welcome-screen .ws-dev-info,.welcome-screen .ws-quote-text,.welcome-screen .ws-dev-bio,.welcome-screen .ws-dev-hi,.welcome-screen .ws-pill{word-break:break-word;overflow-wrap:break-word;}
+#pane-ask{overflow-x:hidden;width:100%;}
+.welcome-section{opacity:0;transform:translateY(20px);animation:wsSlideUp 0.5s ease forwards;}
+.welcome-section.ws-delay-1{animation-delay:0.15s;}
+.welcome-section.ws-delay-2{animation-delay:0.3s;}
+.welcome-section.ws-delay-3{animation-delay:0.45s;}
+.welcome-section.ws-delay-4{animation-delay:0.6s;}
+@keyframes wsSlideUp{to{opacity:1;transform:translateY(0);}}
+.ws-hero{text-align:center;}
+.ws-heading{font-family:'Baloo 2',sans-serif;font-size:1.8rem;font-weight:700;color:var(--text);line-height:1.25;margin-bottom:8px;}
+.ws-heading .ws-brand{color:var(--saffron);}
+.ws-sub-hi{font-family:'Noto Sans Devanagari','Mukta',sans-serif;font-size:0.88rem;color:var(--text3);margin-bottom:2px;}
+.ws-sub-en{font-size:0.88rem;color:var(--text3);margin-bottom:14px;}
+.ws-tricolor{display:flex;justify-content:center;gap:4px;margin-top:4px;}
+.ws-tricolor span{width:32px;height:3px;border-radius:2px;}
+.ws-tri-saffron{background:var(--saffron);}
+.ws-tri-white{background:var(--border2);}
+[data-theme="dark"] .ws-tri-white{background:#555;}
+.ws-tri-green{background:var(--green-india);}
+.ws-dev-card{background:var(--white);border:1px solid var(--border);border-radius:16px;padding:20px;box-shadow:var(--shadow-sm);}
+[data-theme="dark"] .ws-dev-card{background:var(--surface);}
+.ws-dev-row{display:flex;gap:16px;align-items:flex-start;}
+.ws-avatar{width:52px;height:52px;border-radius:50%;background:var(--saffron);color:white;font-weight:700;font-size:1.2rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.ws-dev-info{flex:1;min-width:0;}
+.ws-dev-name{font-size:1rem;font-weight:700;color:var(--text);margin-bottom:2px;}
+.ws-dev-role{font-size:0.78rem;color:var(--text3);}
+.ws-dev-bio{font-size:0.82rem;line-height:1.6;color:var(--text2);margin-top:8px;}
+.ws-dev-hi{font-family:'Noto Sans Devanagari','Mukta',sans-serif;font-size:0.78rem;color:var(--text3);margin-top:8px;line-height:1.5;}
+.ws-pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;}
+.ws-pill{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--border);border-radius:100px;padding:4px 12px;font-size:0.68rem;color:var(--text2);text-decoration:none;transition:all var(--t);background:var(--surface);}
+.ws-pill:hover{border-color:var(--saffron);color:var(--saffron);background:var(--saffron-pale);}
+.ws-quote-card{border-left:4px solid var(--saffron);background:rgba(232,96,28,0.06);padding:16px 20px;border-radius:0 12px 12px 0;display:flex;gap:12px;align-items:flex-start;}
+[data-theme="dark"] .ws-quote-card{background:rgba(232,96,28,0.1);}
+.ws-quote-icon{font-size:1.5rem;color:var(--saffron);line-height:1;flex-shrink:0;}
+.ws-quote-text{font-size:0.84rem;line-height:1.7;font-style:italic;color:var(--text2);font-family:'Noto Sans Devanagari','Mukta',sans-serif;}
+.ws-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+.ws-stat-card{text-align:center;border:1px solid var(--border);border-radius:12px;padding:12px 8px;background:var(--white);}
+[data-theme="dark"] .ws-stat-card{background:var(--surface);}
+.ws-stat-num{font-size:1.3rem;font-weight:700;color:var(--saffron);font-family:'JetBrains Mono',monospace;line-height:1.2;}
+.ws-stat-label{font-size:0.68rem;color:var(--text3);margin-top:4px;}
+.ws-suggest-label{font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.10em;color:var(--text4);margin-bottom:10px;}
+.ws-suggest-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+.ws-suggest-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px 16px;cursor:pointer;transition:all var(--t);text-align:left;}
+[data-theme="dark"] .ws-suggest-card{background:var(--surface);}
+.ws-suggest-card:hover{border-color:var(--saffron);box-shadow:var(--shadow-md);transform:translateY(-2px);}
+.ws-suggest-card .ws-sg-icon{font-size:18px;margin-bottom:6px;}
+.ws-suggest-card .ws-sg-title{font-size:0.82rem;font-weight:700;color:var(--text);margin-bottom:3px;}
+.ws-suggest-card .ws-sg-hint{font-size:0.72rem;color:var(--text3);font-family:'Noto Sans Devanagari','Mukta',sans-serif;}
 .feature-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:100%;max-width:640px;margin-bottom:28px;}
 .feat-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius-md);padding:16px;cursor:pointer;transition:all var(--t);text-align:left;}
 .feat-card:hover{border-color:var(--saffron);box-shadow:var(--shadow-md);transform:translateY(-2px);}
@@ -121,9 +167,9 @@ body{font-family:'Mukta','Noto Sans Devanagari',sans-serif;background:var(--off-
 .avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;margin-top:2px;}
 .avatar.bot-av{background:var(--saffron);color:white;font-weight:700;font-size:11px;font-family:'JetBrains Mono',monospace;}
 .avatar.user-av{background:var(--surface2);border:1px solid var(--border);font-size:16px;}
-.bubble{max-width:70%;display:flex;flex-direction:column;gap:6px;}
+.bubble{max-width:70%;display:flex;flex-direction:column;gap:6px;word-break:break-word;overflow-wrap:break-word;}
 .msg-row.user .bubble{align-items:flex-end;}
-.bubble-body{padding:12px 16px;border-radius:var(--radius-lg);font-size:0.90rem;line-height:1.7;white-space:pre-wrap;word-break:break-word;}
+.bubble-body,.msg-body{padding:12px 16px;border-radius:var(--radius-lg);font-size:0.90rem;line-height:1.7;white-space:pre-wrap;word-break:break-word;overflow-wrap:break-word;}
 .msg-row.bot .bubble-body{background:var(--white);border:1px solid var(--border);border-top-left-radius:4px;color:var(--text);box-shadow:var(--shadow-sm);}
 .msg-row.user .bubble-body{background:var(--saffron);color:white;border-top-right-radius:4px;}
 .msg-meta{display:flex;align-items:center;gap:8px;padding:0 4px;flex-wrap:wrap;}
@@ -167,11 +213,11 @@ body{font-family:'Mukta','Noto Sans Devanagari',sans-serif;background:var(--off-
 .preset-row{display:flex;flex-wrap:wrap;gap:7px;}
 .preset-btn{background:var(--surface);border:1px solid var(--border);border-radius:100px;padding:5px 13px;font-size:0.74rem;color:var(--text2);cursor:pointer;transition:all var(--t);font-family:'Mukta',sans-serif;}
 .preset-btn:hover{border-color:var(--saffron);color:var(--saffron);background:var(--saffron-pale);}
-.input-area{padding:12px 16px 16px;background:var(--white);border-top:1px solid var(--border);flex-shrink:0;}
-.input-wrapper{display:flex;gap:8px;align-items:flex-end;background:var(--off-white);border:1.5px solid var(--border2);border-radius:var(--radius-xl);padding:10px 12px;transition:all var(--t);}
-.input-wrapper:focus-within{border-color:var(--saffron);background:var(--white);box-shadow:0 0 0 4px rgba(232,96,28,0.08);}
-.input-wrapper textarea{flex:1;background:none;border:none;outline:none;color:var(--text);font-size:0.92rem;font-family:'Mukta','Noto Sans Devanagari',sans-serif;resize:none;min-height:24px;max-height:120px;line-height:1.5;}
-.input-wrapper textarea::placeholder{color:var(--text4);}
+.input-area,.input-wrap{padding:12px 16px 16px;background:var(--white);border-top:1px solid var(--border);flex-shrink:0;width:100%;box-sizing:border-box;max-width:100%;}
+.input-wrapper,.input-box{display:flex;gap:8px;align-items:flex-end;background:var(--off-white);border:1.5px solid var(--border2);border-radius:var(--radius-xl);padding:10px 12px;transition:all var(--t);width:100%;box-sizing:border-box;max-width:100%;}
+.input-wrapper:focus-within,.input-box:focus-within{border-color:var(--saffron);background:var(--white);box-shadow:0 0 0 4px rgba(232,96,28,0.08);}
+.input-wrapper textarea,.input-box textarea{flex:1;min-width:0;background:none;border:none;outline:none;color:var(--text);font-size:0.92rem;font-family:'Mukta','Noto Sans Devanagari',sans-serif;resize:none;min-height:24px;max-height:120px;line-height:1.5;}
+.input-wrapper textarea::placeholder,.input-box textarea::placeholder{color:var(--text4);}
 .input-action-btn{width:36px;height:36px;border-radius:50%;border:1px solid var(--border);background:var(--surface);color:var(--text3);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all var(--t);}
 .input-action-btn:hover{background:var(--surface2);border-color:var(--border2);color:var(--text);}
 .input-action-btn.mic.listening{background:#FEE2E2;border-color:#EF4444;color:#EF4444;animation:micPulse 1s infinite;}
@@ -190,20 +236,36 @@ body{font-family:'Mukta','Noto Sans Devanagari',sans-serif;background:var(--off-
 .mode-breadcrumb strong{color:var(--saffron);}
 .hamburger{display:none;width:34px;height:34px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--white);color:var(--text2);font-size:18px;cursor:pointer;align-items:center;justify-content:center;flex-shrink:0;transition:all var(--t);}
 .hamburger:hover{background:var(--surface);}
-.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:39;}
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:99;}
+.sidebar-overlay.open{display:block;}
 @media(max-width:768px){
-  .sidebar{position:fixed;left:0;top:0;bottom:0;z-index:40;transform:translateX(-100%);box-shadow:var(--shadow-lg);}
+  .main-layout{width:100%;overflow-x:hidden;}
+  .main-content,.content-area{width:100%;max-width:100%;flex:1;min-width:0;overflow-x:hidden;}
+  .sidebar{position:fixed;top:0;left:0;height:100dvh;z-index:100;transform:translateX(-100%);box-shadow:var(--shadow-lg);}
   .sidebar.open{transform:translateX(0);}
-  .sidebar-overlay.open{display:block;}
+  body.sidebar-open .main-content,
+  body.sidebar-open .content-area,
+  body.sidebar-open .welcome-screen{overflow:hidden;touch-action:none;}
   .hamburger{display:flex;}
+  .topbar{overflow:hidden;}
   .scheme-counter{display:none;}
   .topbar-center{display:none;}
+  .lang-badge{display:none;}
   .feature-cards{grid-template-columns:1fr 1fr;}
   .form-grid{grid-template-columns:1fr;}
-  .bubble{max-width:88%;}
-  .welcome-greeting{font-size:1.5rem;}
+  .welcome-screen{max-width:100%;margin:0;padding:16px;}
+  .ws-heading{font-size:1.5rem;}
+  .ws-stats{grid-template-columns:repeat(2,1fr);}
+  .chat-pane{overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;width:100%;}
+  .bubble{max-width:100%;min-width:0;flex:1;}
+  .bubble-body,.msg-body{max-width:82%;overflow:hidden;}
+  .msg-row{min-width:0;width:100%;}
+  .input-area,.input-wrap,.input-wrapper,.input-box{width:100%;max-width:100%;box-sizing:border-box;}
 }
 @media(max-width:480px){
+  .ws-suggest-grid{grid-template-columns:1fr;}
+  .ws-dev-row{flex-direction:column;align-items:center;text-align:center;}
+  .ws-pills{justify-content:center;}
   .feature-cards{grid-template-columns:1fr;}
   .topbar{padding:0 12px;}
   .input-area{padding:10px 12px 14px;}
@@ -244,7 +306,7 @@ body{font-family:'Mukta','Noto Sans Devanagari',sans-serif;background:var(--off-
     <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
     <div class="sidebar" id="sidebar">
       <div class="sidebar-header">Navigation</div>
-      <div class="nav-section">
+      <div class="nav-section sidebar-nav">
         <button class="nav-item active" data-mode="ask" onclick="setMode('ask')">
           <div class="nav-icon">💬</div>
           <div class="nav-text-block"><span class="nav-label">Ask / पूछें</span><span class="nav-sublabel">Any scheme question</span></div>
@@ -275,29 +337,91 @@ body{font-family:'Mukta','Noto Sans Devanagari',sans-serif;background:var(--off-
         <div class="privacy-note">🔒 <strong>Privacy First</strong><br/>आपका डेटा कभी संग्रहीत नहीं।<br/>Your data is never stored or shared.</div>
       </div>
     </div>
-    <div class="content-area">
+    <div class="content-area main-content">
       <div class="welcome-screen" id="welcomeScreen">
-        <div class="welcome-hero">
-          <div class="ashoka-ring">🏛</div>
-          <div class="welcome-greeting">नमस्ते! मैं <em>YojanaGPT</em> हूँ।</div>
-          <p class="welcome-subtitle">भारत सरकार की <strong>4,357+ योजनाओं</strong> की जानकारी — किसी भी भाषा में।<br/>Ask about any government scheme in any Indian language.</p>
-        </div>
-        <div class="feature-cards">
-          <div class="feat-card" onclick="setMode('ask')"><div class="feat-icon">💬</div><div class="feat-title">कोई भी सवाल</div><div class="feat-desc">Ask anything about any scheme in Hindi, English or any Indian language</div></div>
-          <div class="feat-card" onclick="setMode('eligibility')"><div class="feat-icon">✅</div><div class="feat-title">पात्रता जाँचें</div><div class="feat-desc">Fill your profile and find schemes you qualify for</div></div>
-          <div class="feat-card" onclick="setMode('documents')"><div class="feat-icon">📋</div><div class="feat-title">दस्तावेज़ सूची</div><div class="feat-desc">Get complete document checklist for any scheme</div></div>
-          <div class="feat-card" onclick="setMode('apply')"><div class="feat-icon">📝</div><div class="feat-title">आवेदन गाइड</div><div class="feat-desc">Step-by-step application instructions for any scheme</div></div>
-          <div class="feat-card" onclick="setMode('compare')"><div class="feat-icon">⚖️</div><div class="feat-title">योजना तुलना</div><div class="feat-desc">Compare multiple schemes side by side</div></div>
-          <div class="feat-card" onclick="setMode('contact')"><div class="feat-icon">📞</div><div class="feat-title">हेल्पलाइन</div><div class="feat-desc">Helpline numbers and grievance contacts</div></div>
-        </div>
-        <p class="quick-chips-label">Try asking →</p>
-        <div class="quick-chips">
-          <div class="chip" onclick="quickSend('PM Kisan ke liye kaun eligible hai?')">PM Kisan पात्रता</div>
-          <div class="chip" onclick="quickSend('What is Ayushman Bharat scheme?')">Ayushman Bharat</div>
-          <div class="chip" onclick="quickSend('PM Awas Yojana kya hai?')">PM Awas Yojana</div>
-          <div class="chip" onclick="quickSend('Mudra loan ke liye kaise apply karein?')">Mudra Loan</div>
-          <div class="chip" onclick="quickSend('Sukanya Samriddhi ke kya fayde hain?')">Sukanya Samriddhi</div>
-          <div class="chip" onclick="quickSend('PMFBY fasal bima kaise milti hai?')">PMFBY बीमा</div>
+        <div class="welcome-inner">
+          <section class="welcome-section ws-hero">
+            <div style="display:flex;gap:4px;justify-content:center;margin-bottom:12px;">
+              <div style="width:28px;height:6px;background:#E8521A;border-radius:3px;"></div>
+              <div style="width:28px;height:6px;background:#888;border-radius:3px;"></div>
+              <div style="width:28px;height:6px;background:#16A34A;border-radius:3px;"></div>
+            </div>
+            <h2 class="ws-heading">नमस्ते! मैं <span class="ws-brand">YojanaGPT</span> हूँ</h2>
+            <p class="ws-sub-hi">आपकी योजनाओं का साथी</p>
+            <p class="ws-sub-en">Your Government Schemes Assistant</p>
+            <div class="ws-tricolor">
+              <span class="ws-tri-saffron"></span>
+              <span class="ws-tri-white"></span>
+              <span class="ws-tri-green"></span>
+            </div>
+          </section>
+
+          <section class="welcome-section ws-delay-1 ws-dev-card">
+            <div class="ws-dev-row">
+              <div class="ws-avatar">AA</div>
+              <div class="ws-dev-info">
+                <div class="ws-dev-name">Aditya Agarwal</div>
+                <div class="ws-dev-role">AI/ML Engineer · Pune, India</div>
+                <p class="ws-dev-bio">I build systems that make technology accessible to every Indian citizen — regardless of language, literacy, or location.</p>
+                <p class="ws-dev-hi">मेरा सपना है कि भारत का हर नागरिक सरकारी योजनाओं का लाभ उठा सके।</p>
+                <div class="ws-pills">
+                  <a class="ws-pill" href="mailto:agarwal.aditya2017@gmail.com">📧 agarwal.aditya2017@gmail.com</a>
+                  <a class="ws-pill" href="https://github.com/Aditya9122002" target="_blank" rel="noopener">🐙 GitHub</a>
+                  <a class="ws-pill" href="https://adi12340-yojanagpt.hf.space/ui" target="_blank" rel="noopener">🌐 Live Demo</a>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="welcome-section ws-delay-2 ws-quote-card">
+            <span class="ws-quote-icon">❝</span>
+            <p class="ws-quote-text">भारत में 4,600+ सरकारी योजनाएँ हैं — लेकिन जानकारी के अभाव में करोड़ों लोग इनसे वंचित रह जाते हैं। YojanaGPT उस दूरी को मिटाने की एक कोशिश है।</p>
+          </section>
+
+          <section class="welcome-section ws-delay-3 ws-stats">
+            <div class="ws-stat-card">
+              <div class="ws-stat-num" data-count="4357" data-format="comma">0</div>
+              <div class="ws-stat-label">Schemes</div>
+            </div>
+            <div class="ws-stat-card">
+              <div class="ws-stat-num" data-count="22467" data-format="comma">0</div>
+              <div class="ws-stat-label">Chunks</div>
+            </div>
+            <div class="ws-stat-card">
+              <div class="ws-stat-num" data-count="22">0</div>
+              <div class="ws-stat-label">Languages</div>
+            </div>
+            <div class="ws-stat-card">
+              <div class="ws-stat-num" data-count="69">0</div>
+              <div class="ws-stat-label">Tests</div>
+            </div>
+          </section>
+
+          <section class="welcome-section ws-delay-4">
+            <p class="ws-suggest-label">💬 Try asking:</p>
+            <div class="ws-suggest-grid">
+              <div class="ws-suggest-card" onclick="useSuggestion('PM Kisan ke liye kaun eligible hai? कौन पात्र है?', 'ask')">
+                <div class="ws-sg-icon">🌾</div>
+                <div class="ws-sg-title">PM Kisan Eligibility</div>
+                <div class="ws-sg-hint">कौन पात्र है?</div>
+              </div>
+              <div class="ws-suggest-card" onclick="useSuggestion('Ayushman Bharat scheme mein 5 lakh ka bima cover kya hai?', 'ask')">
+                <div class="ws-sg-icon">🏥</div>
+                <div class="ws-sg-title">Ayushman Bharat</div>
+                <div class="ws-sg-hint">5 लाख बीमा</div>
+              </div>
+              <div class="ws-suggest-card" onclick="useSuggestion('PM Awas Yojana ke baare mein batao — आवास योजना', 'ask')">
+                <div class="ws-sg-icon">🏠</div>
+                <div class="ws-sg-title">PM Awas Yojana</div>
+                <div class="ws-sg-hint">आवास योजना</div>
+              </div>
+              <div class="ws-suggest-card" onclick="useSuggestion('Mudra loan vyapar ke liye kaise milega?', 'ask')">
+                <div class="ws-sg-icon">💰</div>
+                <div class="ws-sg-title">Mudra Loan</div>
+                <div class="ws-sg-hint">व्यापार के लिए ऋण</div>
+              </div>
+            </div>
+          </section>
         </div>
       </div>
 
@@ -456,12 +580,16 @@ body{font-family:'Mukta','Noto Sans Devanagari',sans-serif;background:var(--off-
 const API=(()=>{const h=window.location.hostname;if(h.includes('hf.space')||h.includes('huggingface.co'))return window.location.origin;return 'http://localhost:8000';})();
 let currentMode=null,schemeNames=[];
 const modeConfig={ask:{placeholder:'अपना सवाल यहाँ लिखें… / Ask your question…',typing:'Searching 4,357 schemes…'},eligibility:{placeholder:'कौन सी योजना जाँचनी है? / Which scheme to check?',typing:'Checking eligibility…'},documents:{placeholder:'किस योजना के दस्तावेज़? / Documents for which scheme?',typing:'Extracting document list…'},apply:{placeholder:'कैसे आवेदन करें? / How to apply for which scheme?',typing:'Building guide…'},compare:{placeholder:'तुलना नोट… / Comparison note…',typing:'Comparing schemes…'},contact:{placeholder:'किस योजना की हेल्पलाइन? / Helpline for which scheme?',typing:'Looking up contacts…'}};
-function setMode(mode){document.getElementById('welcomeScreen').style.display='none';document.querySelectorAll('.chat-pane').forEach(p=>p.classList.remove('active-pane'));document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));document.getElementById('pane-'+mode).classList.add('active-pane');document.querySelector('[data-mode="'+mode+'"]').classList.add('active');currentMode=mode;document.getElementById('questionInput').placeholder=modeConfig[mode].placeholder;hideError();scrollDown();document.getElementById('questionInput').focus();if(window.innerWidth<=768)closeSidebar();}
+function hideWelcome(){const w=document.getElementById('welcomeScreen');if(w)w.style.display='none';}
+function setMode(mode){hideWelcome();document.querySelectorAll('.chat-pane').forEach(p=>p.classList.remove('active-pane'));document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));document.getElementById('pane-'+mode).classList.add('active-pane');document.querySelector('[data-mode="'+mode+'"]').classList.add('active');currentMode=mode;document.getElementById('questionInput').placeholder=modeConfig[mode].placeholder;hideError();scrollDown();document.getElementById('questionInput').focus();if(window.innerWidth<=768)closeSidebar();}
 function quickSend(text){if(!currentMode)setMode('ask');document.getElementById('questionInput').value=text;autoResize(document.getElementById('questionInput'));handleSend();}
-function useSuggestion(text){setMode('contact');document.getElementById('questionInput').value=text;autoResize(document.getElementById('questionInput'));handleSend();}
+function useSuggestion(text,mode){setMode(mode||'contact');document.getElementById('questionInput').value=text;autoResize(document.getElementById('questionInput'));handleSend();}
+function easeOutCubic(t){return 1-Math.pow(1-t,3);}
+function animateWelcomeStats(){document.querySelectorAll('.ws-stat-num[data-count]').forEach(el=>{const target=+el.dataset.count;const useComma=el.dataset.format==='comma';const duration=1500;const start=performance.now();function tick(now){const p=Math.min((now-start)/duration,1);const val=Math.round(target*easeOutCubic(p));el.textContent=useComma?val.toLocaleString('en-IN'):String(val);if(p<1)requestAnimationFrame(tick);}requestAnimationFrame(tick);});}
+document.addEventListener('DOMContentLoaded',()=>{setTimeout(animateWelcomeStats,650);});
 function autoResize(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,120)+'px';}
 function handleKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();handleSend();}}
-async function handleSend(){if(!currentMode)setMode('ask');const input=document.getElementById('questionInput');const question=input.value.trim();if(!question&&currentMode!=='compare')return;hideError();let displayQ=question;if(currentMode==='compare'&&schemeNames.length>=2)displayQ=question||'Compare: '+schemeNames.join(' vs ');if(!displayQ)return;addUserMsg(displayQ);input.value='';input.style.height='auto';showTyping();scrollDown();try{let data;switch(currentMode){case 'ask':data=await callAPI('/ask',{question,top_k:5});break;case 'eligibility':data=await callAPI('/eligibility',{question,profile:getProfile(),top_k:5});break;case 'documents':data=await callAPI('/documents',{question,top_k:5});break;case 'apply':data=await callAPI('/apply',{question,top_k:5});break;case 'compare':if(schemeNames.length<2){showError('कम से कम 2 योजनाएँ चुनें · Add at least 2 schemes');hideTyping();return;}data=await callAPI('/compare',{question:question||'Compare '+schemeNames.join(' and '),scheme_names:schemeNames,top_k:5});break;case 'contact':data=await callAPI('/contact',{question,top_k:5});break;}hideTyping();addBotMsg(data);}catch(err){hideTyping();showError(err.message);}scrollDown();}
+async function handleSend(){if(!currentMode)setMode('ask');hideWelcome();const input=document.getElementById('questionInput');const question=input.value.trim();if(!question&&currentMode!=='compare')return;hideError();let displayQ=question;if(currentMode==='compare'&&schemeNames.length>=2)displayQ=question||'Compare: '+schemeNames.join(' vs ');if(!displayQ)return;addUserMsg(displayQ);input.value='';input.style.height='auto';showTyping();scrollDown();try{let data;switch(currentMode){case 'ask':data=await callAPI('/ask',{question,top_k:5});break;case 'eligibility':data=await callAPI('/eligibility',{question,profile:getProfile(),top_k:5});break;case 'documents':data=await callAPI('/documents',{question,top_k:5});break;case 'apply':data=await callAPI('/apply',{question,top_k:5});break;case 'compare':if(schemeNames.length<2){showError('कम से कम 2 योजनाएँ चुनें · Add at least 2 schemes');hideTyping();return;}data=await callAPI('/compare',{question:question||'Compare '+schemeNames.join(' and '),scheme_names:schemeNames,top_k:5});break;case 'contact':data=await callAPI('/contact',{question,top_k:5});break;}hideTyping();addBotMsg(data);}catch(err){hideTyping();showError(err.message);}scrollDown();}
 async function callAPI(endpoint,body){const r=await fetch(API+endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(e.detail||'HTTP '+r.status);}return r.json();}
 function getProfile(){const f={};['age','gender','state','caste','income','occupation','disability','bpl'].forEach(k=>{const v=document.getElementById('ef-'+k)?.value?.trim();if(v)f[k]=v;});return f;}
 function handleTagKey(e){if(e.key==='Enter'){e.preventDefault();const v=e.target.value.trim();if(v&&!schemeNames.includes(v)){schemeNames.push(v);renderTags();}e.target.value='';}}
@@ -481,8 +609,8 @@ function toggleMic(){const SR=window.SpeechRecognition||window.webkitSpeechRecog
 let currentAudio=null;
 async function speakAnswer(msgId,text,lang){const btn=document.getElementById('speak-'+msgId);if(currentAudio&&!currentAudio.paused){currentAudio.pause();currentAudio=null;document.querySelectorAll('.speak-btn').forEach(b=>{b.classList.remove('playing');b.textContent='🔊 Listen';});return;}btn.textContent='⏳ Loading…';btn.disabled=true;try{const r=await fetch(API+'/speak',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,lang_code:lang})});if(!r.ok)throw new Error('TTS failed');const blob=await r.blob();const url=URL.createObjectURL(blob);currentAudio=new Audio(url);currentAudio.play();btn.textContent='⏹ Stop';btn.classList.add('playing');btn.disabled=false;currentAudio.onended=()=>{btn.textContent='🔊 Listen';btn.classList.remove('playing');URL.revokeObjectURL(url);currentAudio=null;};}catch(e){btn.textContent='🔊 Listen';btn.disabled=false;showError('Audio error. Check connection.');}}
 function toggleTheme(){const body=document.body;const isDark=body.getAttribute('data-theme')==='dark';body.setAttribute('data-theme',isDark?'light':'dark');document.getElementById('themeBtn').textContent=isDark?'🌙':'☀️';}
-function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebarOverlay').classList.toggle('open');}
-function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('sidebarOverlay').classList.remove('open');}
+function toggleSidebar(){const sb=document.getElementById('sidebar');const ov=document.getElementById('sidebarOverlay');sb.classList.toggle('open');ov.classList.toggle('open');document.body.classList.toggle('sidebar-open',sb.classList.contains('open'));}
+function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('sidebarOverlay').classList.remove('open');document.body.classList.remove('sidebar-open');}
 function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 </script>
 </body>
