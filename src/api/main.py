@@ -16,8 +16,6 @@ Run with:
   uvicorn src.api.main:app --reload --host 0.0.0.0 --port 8000
 """
 
-from __future__ import annotations
-
 from dotenv import load_dotenv
 load_dotenv()
 import io
