@@ -10,6 +10,7 @@ Routes:
   POST /apply       → Step-by-step application guide
   POST /compare     → Side-by-side scheme comparison
   POST /contact     → Contact details and helpline numbers
+  POST /speak       → Text-to-speech (MP3)
 
 Run with:
   uvicorn src.api.main:app --reload --host 0.0.0.0 --port 8000
@@ -26,10 +27,13 @@ from contextlib import asynccontextmanager
 from fastapi.responses import FileResponse, StreamingResponse
 
 from .models import SpeakRequest  # add SpeakRequest to existing import
-
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 
 import chromadb
-from fastapi import FastAPI, Depends, HTTPException
+from gtts import gTTS
+from fastapi import FastAPI, Depends, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 from fastapi.staticfiles import StaticFiles
@@ -75,6 +79,11 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+# ── Rate limiting ─────────────────────────────────────────────────────────────
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -83,6 +92,7 @@ app.add_middleware(
 )
 
 app.mount("/frontend", StaticFiles(directory="frontend"), name="frontend")
+
 
 @app.get("/ui", tags=["General"])
 def serve_ui():
@@ -127,6 +137,7 @@ def root():
             "apply": "POST /apply — Step-by-step guide",
             "compare": "POST /compare — Compare schemes",
             "contact": "POST /contact — Helpline & contact info",
+            "speak": "POST /speak — Text to speech",
         },
         "languages": "Hindi, Tamil, Bengali, Telugu, Marathi, Gujarati, Kannada, Malayalam, Punjabi, Odia, Urdu, English",
     }
@@ -146,31 +157,35 @@ def health_check():
         )
     except Exception as e:
         logger.error("Health check failed: %s", e)
-        raise HTTPException(status_code=500, detail=f"Health check failed: {str(e)}")
+        raise HTTPException(status_code=500, detail="Health check failed")
 
 
 @app.post("/ask", response_model=AskResponse, tags=["Schemes"])
+@limiter.limit("15/minute")
 def ask_question(
-    request: AskRequest,
+    request: Request,
+    body: AskRequest,
     pipeline: YojanaRAGPipeline = Depends(get_pipeline),
 ):
     """
     Ask any question about Indian government schemes.
     Supports all 22 Indian languages.
     """
-    if not request.question.strip():
+    if not body.question.strip():
         raise HTTPException(status_code=400, detail="Question cannot be empty")
     try:
-        response = pipeline.ask(question=request.question, top_k=request.top_k)
+        response = pipeline.ask(question=body.question, top_k=body.top_k)
         return _to_ask_response(response)
     except Exception as e:
         logger.error("Error in /ask: %s", e)
-        raise HTTPException(status_code=500, detail=f"Error processing question: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error processing your question. Please try again.")
 
 
 @app.post("/eligibility", response_model=AskResponse, tags=["Schemes"])
+@limiter.limit("15/minute")
 def check_eligibility(
-    request: EligibilityRequest,
+    request: Request,
+    body: EligibilityRequest,
     pipeline: YojanaRAGPipeline = Depends(get_pipeline),
 ):
     """
@@ -178,23 +193,25 @@ def check_eligibility(
 
     Provide profile fields: age, state, income, caste, occupation, gender, disability, bpl.
     """
-    if not request.question.strip():
+    if not body.question.strip():
         raise HTTPException(status_code=400, detail="Question cannot be empty")
     try:
         response = pipeline.check_eligibility(
-            question=request.question,
-            user_profile=request.profile,
-            top_k=request.top_k,
+            question=body.question,
+            user_profile=body.profile,
+            top_k=body.top_k,
         )
         return _to_ask_response(response)
     except Exception as e:
         logger.error("Error in /eligibility: %s", e)
-        raise HTTPException(status_code=500, detail=f"Error checking eligibility: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error checking eligibility. Please try again.")
 
 
 @app.post("/documents", response_model=AskResponse, tags=["Schemes"])
+@limiter.limit("15/minute")
 def get_documents(
-    request: DocumentsRequest,
+    request: Request,
+    body: DocumentsRequest,
     pipeline: YojanaRAGPipeline = Depends(get_pipeline),
 ):
     """
@@ -205,19 +222,21 @@ def get_documents(
 
     Example: "What documents do I need for PM Kisan?"
     """
-    if not request.question.strip():
+    if not body.question.strip():
         raise HTTPException(status_code=400, detail="Question cannot be empty")
     try:
-        response = pipeline.get_documents(question=request.question, top_k=request.top_k)
+        response = pipeline.get_documents(question=body.question, top_k=body.top_k)
         return _to_ask_response(response)
     except Exception as e:
         logger.error("Error in /documents: %s", e)
-        raise HTTPException(status_code=500, detail=f"Error fetching documents: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error fetching documents. Please try again.")
 
 
 @app.post("/apply", response_model=AskResponse, tags=["Schemes"])
+@limiter.limit("15/minute")
 def get_apply_guide(
-    request: ApplyGuideRequest,
+    request: Request,
+    body: ApplyGuideRequest,
     pipeline: YojanaRAGPipeline = Depends(get_pipeline),
 ):
     """
@@ -228,19 +247,21 @@ def get_apply_guide(
 
     Example: "How do I apply for PM Awas Yojana?"
     """
-    if not request.question.strip():
+    if not body.question.strip():
         raise HTTPException(status_code=400, detail="Question cannot be empty")
     try:
-        response = pipeline.get_apply_guide(question=request.question, top_k=request.top_k)
+        response = pipeline.get_apply_guide(question=body.question, top_k=body.top_k)
         return _to_ask_response(response)
     except Exception as e:
         logger.error("Error in /apply: %s", e)
-        raise HTTPException(status_code=500, detail=f"Error fetching application guide: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error fetching application guide. Please try again.")
 
 
 @app.post("/compare", response_model=AskResponse, tags=["Schemes"])
+@limiter.limit("15/minute")
 def compare_schemes(
-    request: CompareRequest,
+    request: Request,
+    body: CompareRequest,
     pipeline: YojanaRAGPipeline = Depends(get_pipeline),
 ):
     """
@@ -256,25 +277,27 @@ def compare_schemes(
             "scheme_names": ["PM Kisan", "PMFBY"]
         }
     """
-    if not request.question.strip():
+    if not body.question.strip():
         raise HTTPException(status_code=400, detail="Question cannot be empty")
-    if len(request.scheme_names) < 2:
+    if len(body.scheme_names) < 2:
         raise HTTPException(status_code=400, detail="Provide at least 2 scheme names to compare")
     try:
         response = pipeline.compare_schemes(
-            question=request.question,
-            scheme_names=request.scheme_names,
-            top_k=request.top_k,
+            question=body.question,
+            scheme_names=body.scheme_names,
+            top_k=body.top_k,
         )
         return _to_ask_response(response)
     except Exception as e:
         logger.error("Error in /compare: %s", e)
-        raise HTTPException(status_code=500, detail=f"Error comparing schemes: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error comparing schemes. Please try again.")
 
 
 @app.post("/contact", response_model=AskResponse, tags=["Schemes"])
+@limiter.limit("15/minute")
 def get_contact(
-    request: ContactRequest,
+    request: Request,
+    body: ContactRequest,
     pipeline: YojanaRAGPipeline = Depends(get_pipeline),
 ):
     """
@@ -285,11 +308,33 @@ def get_contact(
 
     Example: "What is the helpline for PM Kisan?"
     """
-    if not request.question.strip():
+    if not body.question.strip():
         raise HTTPException(status_code=400, detail="Question cannot be empty")
     try:
-        response = pipeline.get_contact(question=request.question, top_k=request.top_k)
+        response = pipeline.get_contact(question=body.question, top_k=body.top_k)
         return _to_ask_response(response)
     except Exception as e:
         logger.error("Error in /contact: %s", e)
-        raise HTTPException(status_code=500, detail=f"Error fetching contact details: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error fetching contact details. Please try again.")
+
+
+@app.post("/speak", tags=["General"])
+@limiter.limit("15/minute")
+def speak(request: Request, body: SpeakRequest):
+    """
+    Convert text to speech and stream back an MP3.
+    Uses gTTS — lang_code should be a gTTS-supported language code
+    (e.g. 'hi' for Hindi, 'ta' for Tamil, 'en' for English).
+    """
+    try:
+        tts = gTTS(text=body.text, lang=body.lang_code)
+        buffer = io.BytesIO()
+        tts.write_to_fp(buffer)
+        buffer.seek(0)
+        return StreamingResponse(buffer, media_type="audio/mpeg")
+    except ValueError as e:
+        logger.error("Unsupported language in /speak: %s", e)
+        raise HTTPException(status_code=400, detail="Unsupported language code")
+    except Exception as e:
+        logger.error("Error in /speak: %s", e)
+        raise HTTPException(status_code=500, detail="Error generating speech")
